@@ -21,6 +21,15 @@ class SiteSettings(models.Model):
             ('bypass_maintenance', 'Может обходить режим техработ'),
         ]
 
+class AllowedDevIPs(models.Model):
+    ip = models.CharField(default='127.0.0.1', verbose_name='Разрешенный IP')
+    updated_at = models.DateTimeField(auto_now=True)
+    def __srt__(self):
+        return 'Разрешенные DEV IP'
+    class Meta:
+        verbose_name = 'Разрешенные DEV IP'
+        verbose_name_plural = 'Разрешенный DEV IP'
+
 class ActionType(models.TextChoices):
     COPY = 'copy', 'Скопировать текст'
     LINK = 'link', 'Перейти по ссылке'

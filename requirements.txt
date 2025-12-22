@@ -1,0 +1,15 @@
+django
+django-tailwind
+django-vue
+django-guardian
+django-axes
+pillow
+bleach
+markdown
+djangorestframework
+asgiref
+django-ckeditor-5
+tinycss2
+beautifulsoup4
+psycopg2-binary
+django-environ

@@ -10,17 +10,27 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import environ
+import os
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Выбираем, какой .env файл грузить
+ENVIRONMENT = os.getenv('DJANGO_ENV', 'local')  # 'local', 'stage', 'prod'
+
+# Если нет файла, fallback на локальный
+env_file = {
+    'local': '.env.local',
+    'stage': '.env.stage',
+    'prod': '.env.prod'
+}.get(ENVIRONMENT, '.env.local')
+
 env = environ.Env(
-    DEBUG=(bool, False),
+    DEBUG=(bool, False)
 )
 
-environ.Env.read_env(BASE_DIR / ".env")
-
+# Загружаем .env
+env.read_env(os.path.join(BASE_DIR, env_file))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -33,15 +43,15 @@ DEBUG = env('DEBUG')
 # РЕЖИМ ТЕХНИЧЕСКИХ РАБОТ, ПЕРЕД ВКЛЮЧЕНИЕМ ОБЯЗАТЕЛЬНО ВОЙТИ КАК SUPERUSER ИЛИ СО СПЕЦИАЛЬНЫМ ПРАВОМ
 MAINTENANCE_MODE = True
 
-DEV_IPS = [
-    '127.0.0.1', 
-    '46.147.98.45', #WI-FI дома
-    '188.43.251.254', #WI-FI на работе
-    '91.195.137.206', #hope
-    #'94.50.108.45', #4eknutiy
-    #'178.206.251.79', #user
-    #'95.110.85.15' #user
-    ]
+# DEV_IPS = [
+#     '127.0.0.1', 
+#     '46.147.98.45', #WI-FI дома
+#     '188.43.251.254', #WI-FI на работе
+#     '91.195.137.206', #hope
+#     #'94.50.108.45', #4eknutiy
+#     #'178.206.251.79', #user
+#     #'95.110.85.15' #user
+#     ]
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
@@ -203,27 +213,33 @@ TEMPLATES = [
 WSGI_APPLICATION = 'forum.wsgi.application'
 
 TAILWIND_APP_NAME = 'theme'
-# NPM_BIN_PATH = r'C:\Program Files\nodejs\npm.cmd' #TEMPORARY!
-NPM_BIN_PATH = '/usr/bin/npm'
+if os.name == 'nt':
+    NPM_BIN_PATH = r'C:\Program Files\nodejs\npm.cmd' #TEMPORARY!
+else:
+    NPM_BIN_PATH = '/usr/bin/npm'
 
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    #'default': {
-    #    'ENGINE': 'django.db.backends.sqlite3',
-    #    'NAME': BASE_DIR / 'db.sqlite3',
-    #}
-'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('DB_NAME'),
-        'USER': env('DB_USER'),
-        'PASSWORD': env('DB_PASSWORD'),
-        'HOST': env('DB_HOST'),
-        'PORT': env('DB_PORT'),
+if os.name == 'nt':
+    DATABASES = {
+        'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': env('DB_NAME'),
+                'USER': env('DB_USER'),
+                'PASSWORD': env('DB_PASSWORD'),
+                'HOST': env('DB_HOST'),
+                'PORT': env('DB_PORT'),
+            }
+    }
 
 
 # Password validation

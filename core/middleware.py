@@ -8,7 +8,7 @@ from django.contrib.auth import logout
 from django.shortcuts import render
 from django.contrib.auth import logout
 from django.core.cache import cache
-from .models import SiteSettings
+from .models import SiteSettings, AllowedDevIPs
 import threading
 
 _local = threading.local()
@@ -63,7 +63,7 @@ class MaintenanceModeMiddleware:
         ):
             return self.get_response(request)
 
-        if get_client_ip(request) in settings.DEV_IPS:
+        if get_client_ip(request) in AllowedDevIPs.objects.all().values_list('ip', flat=True):
             return self.get_response(request)
 
         # --- доступ для разработчиков ---
