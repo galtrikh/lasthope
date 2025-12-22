@@ -1,0 +1,62 @@
+{% extends 'layouts/forum.html' %}
+
+<!--===========LOADS=============-->
+<!--===========BLOCKS=============-->
+{% block title %}
+    user
+{% endblock title %}
+
+
+{% block description %}
+    description
+{% endblock description %}
+    
+
+{% block keywords %}
+    keywords
+{% endblock keywords %}
+
+{% block extra %}
+    {{form.media}}
+{% endblock %}
+<!--===========CONTENT=============-->
+
+{% block data %}
+    <style type="text/css">
+        /* списки */
+.ck-content ul,
+.ck-content ol {
+    padding-left: 1.5em;
+    margin: 1em 0;
+    list-style-position: inside;
+}
+
+/* todo list */
+.ck-content .todo-list {
+    padding-left: 2rem;
+}
+
+.ck-content .todo-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5em;
+    margin: 0.4em 0;
+}
+
+.ck-content .todo-list li input[type="checkbox"] {
+    margin-top: 0.25em;
+    flex-shrink: 0;
+}
+
+/* редактор */
+.ck-editor__editable {
+    padding: 1rem;
+    overflow-x: auto;
+}
+    </style>
+    <form method="POST" action="{% url 'post' post.topic.category.slug post.topic.id post.id 'save_edit' %}" class="p-2">
+        {% csrf_token %}
+        {{form.content}}
+        <button type="submit" class="p-1 px-3 bg-sky-500 hover:bg-sky-700 cursor-pointer rounded-full">Сохранить изменения</button>
+    </form>
+{% endblock %}

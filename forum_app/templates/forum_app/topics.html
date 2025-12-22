@@ -1,0 +1,45 @@
+{% extends 'layouts/forum.html' %}
+
+<!--===========LOADS=============-->
+<!--===========BLOCKS=============-->
+{% block title %}
+    user
+{% endblock title %}
+
+
+{% block description %}
+    description
+{% endblock description %}
+    
+
+{% block keywords %}
+    keywords
+{% endblock keywords %}
+    
+<!--===========CONTENT=============-->
+
+{% block data %}
+    <div class="px-3 pb-4 flex space-x-1 items-center">
+        <a href="{% url 'forum' %}" class="text-neutral-600 hover:text-neutral-800 hover:underline h-full">Форум</a>
+            <span class="select-none text-center text-neutral-600">></span>
+        <a href="{% url 'category' cat_slug=category.slug %}" class="hover:underline hover:text-neutral-800 text-neutral-600">{{category.name}}</a>
+    </div>
+    <div class="flex flex-col md:flex-row items-center justify-between">
+        <a href="{% url 'category' cat_slug=category.slug %}" class="w-full h-full font-bold text-2xl p-4">{{category.name}}</a>
+        {% if can_create_topic %}
+            <form method='POST' class="flex space-x-2 w-full mb-5 md:mb-2">{% csrf_token %}<input type="text" name="topic_name" placeholder="Заголовок новой темы" class="focus:outline-0 border-2 border-sky-500 p-2 px-4 rounded-full w-2/3 md:w-100 md:min-w-100" required/><button type="sublit" class="p-2 px-4 bg-sky-500 text-sky-50 rounded-full text-nowrap mr-5 hover:bg-sky-700 cursor-pointer">Новая тема</button></form>
+        {% endif %}
+    </div>
+        {% if topics|length > 0 %}
+            {% for topic in topics %}
+                <div class="bg-sky-300 hover:bg-sky-500 px-3 p-2 font-bold text-sky-950">
+                    <a href="{% url 'topic' cat_slug=category.slug topic_id=topic.id %}">
+                        <div>{{topic.title}}</div>
+                    </a>
+                </div>
+            {% endfor %}
+        {% else %}
+            Категория пока пуста
+        {% endif %}
+    
+{% endblock %}

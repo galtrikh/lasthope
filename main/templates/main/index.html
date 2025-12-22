@@ -1,0 +1,137 @@
+{% extends 'layouts/main.html' %}
+
+<!--===========LOADS=============-->
+<!--===========BLOCKS=============-->
+{% block title %}
+    Главная
+{% endblock title %}
+
+
+{% block description %}
+    Главная страница сайта-форума для сервера "ТЮРЬМА ПОСЛЕДНЯЯ НАДЕЖДА v34" в игре Counter Strike: Source v34 (12+)
+{% endblock description %}
+    
+
+{% block keywords %}
+    CSS, CSSV34, jail, last hope, last hope v34, последняя, надежда, последняя надежда, v34, V34, тюрьма, Counter Strike, cs, CS, Source, Counter-Strike, Counter-Strike:Source
+{% endblock keywords %}
+    
+<!--===========CONTENT=============-->
+
+{% block content %}
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+        const imgs = document.querySelectorAll("img.progressive");
+        imgs.forEach(img => {
+            const full = img.dataset.src;
+            const tmp = new Image();
+            tmp.onload = () => {
+                img.src = full;
+                img.classList.remove('blur-xl');
+                img.classList.remove('scale-110');
+            };
+            tmp.src = full;
+            });
+        });
+    </script>
+            <div class="w-full flex flex-col md:items-center space-y-7 md:h-full">
+                <div class="w-full z-1 text-black">
+                    {% if not banner.hidden %}
+                    <div class="w-full h-fit p-2 flex items-center justify-center">
+                        <div class="overflow-hidden" style="width: {{banner.width}}%">
+                            <img class="object-cover blur-xl scale-110 w-full progressive" src="{{banner.image_small.url}}" data-src="{{banner.image.url}}"/>
+                        </div>
+                    </div>
+                {% endif %}
+            {% if polls %}
+            <div class="flex items-baseline space-x-5 w-full justify-around p-10 bg-sky-200">
+                {% for poll in polls %}
+                <form method="post" class="space-y-4 bg-sky-50 text-black w-full md:w-100 p-3 pb-6 rounded-4xl">
+                    {% csrf_token %}
+                    <input type="hidden" name="poll_id" value="{{ poll.poll.id }}">
+                    <h3 class="text-lg font-semibold bg-sky-500 p-3 text-center rounded-full">
+                        {{ poll.poll.title }}
+                    </h3>
+                    {% if user.is_authenticated %}
+
+                    {% if poll.can_vote %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="poll_id" value="{{ poll.poll.id }}">
+
+                            <div class="space-y-2">
+                                {{ poll.form.options }}
+                            </div>
+
+                            <button
+                                type="submit"
+                                class="mt-3 bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-full cursor-pointer"
+                            >
+                                Голосовать
+                            </button>
+                        </form>
+
+                    {% else %}
+                        <div class="space-y-3">
+                            {% for item in poll.items %}
+                                <div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="{% if item.is_winner %} bg-sky-500 text-sky-50 rounded-full px-2 {% endif %}">{{ item.text }}</span>
+                                        <span>{{ item.percent }}%</span>
+                                    </div>
+
+                                    <div class="bg-sky-200 w-full h-2 rounded-full mt-1">
+                                        <div
+                                            class="h-full rounded-full {% if item.is_winner %} bg-sky-800 {% else %} bg-sky-500 {% endif %}"
+                                            style="width: {{ item.percent }}%;"
+                                        ></div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                {% else %}
+                    <div class="space-y-2">
+                        Чтобы голосовать, необходимо
+                        <a href="{% url 'login' %}" class="text-sky-700 underline">войти</a>
+                    </div>
+                {% endif %}
+                </form>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if rules %}
+                <div class="md:p-10">
+                    <div class="bg-sky-50 p-4 md:rounded-lg">
+                        <p class="font-bold text-2xl p-4 pt-0 mb-4 text-sky-950">Общие правила игры на сервере</p>
+                        <ol class="pl-12 space-y-2 list-outside list-decimal">
+                        {% for rule in rules%}
+                            <li class="md:font-bold md:text-lg list-item">{{rule.text}}</li>
+                        {% endfor %}
+                        </ol>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="fixed top-0 md:flex flex-col w-full h-full z-0 blur-sm">
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ГЛАВНАЯ СЕРВЕРА ГЛАВНАЯ СЕРВЕРА ГЛАВНАЯ СЕРВЕРА ГЛАВНАЯ СЕРВЕРА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ГЛАВНАЯ СЕРВЕРА ГЛАВНАЯ СЕРВЕРА ГЛАВНАЯ СЕРВЕРА ГЛАВНАЯ СЕРВЕРА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ГЛАВНАЯ СЕРВЕРА ГЛАВНАЯ СЕРВЕРА ГЛАВНАЯ СЕРВЕРА ГЛАВНАЯ СЕРВЕРА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ГЛАВНАЯ СЕРВЕРА ГЛАВНАЯ СЕРВЕРА ГЛАВНАЯ СЕРВЕРА ГЛАВНАЯ СЕРВЕРА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ГЛАВНАЯ СЕРВЕРА ГЛАВНАЯ СЕРВЕРА ГЛАВНАЯ СЕРВЕРА ГЛАВНАЯ СЕРВЕРА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+        </div>
+    </div>
+
+{% endblock content %}
+    

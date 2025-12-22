@@ -1,0 +1,62 @@
+{% extends 'layouts/main.html' %}
+
+<!--===========LOADS=============-->
+<!--===========BLOCKS=============-->
+{% block title %}
+    help
+{% endblock title %}
+
+
+{% block description %}
+    description
+{% endblock description %}
+    
+
+{% block keywords %}
+    keywords
+{% endblock keywords %}
+    
+<!--===========CONTENT=============-->
+
+{% block content %}
+    <div class="w-full flex flex-col md:items-center space-y-7 md:h-full">
+                
+        <div class="flex items-baseline w-full justify-around h-full z-1 md:p-10">
+           <div class="bg-sky-50 rounded-4xl text-black p-10 w-full h-full">
+                <span class="text-sky-800 font-bold text-2xl">Раздел помощи игрокам сервера</span>
+                <div class="mt-5">
+                    {% for point in points %}
+                        <details class="group border-2 border-sky-800 rounded-lg mt-2">
+                            <summary class="cursor-pointer p-4 font-medium flex justify-between items-center rounded-lg hover:bg-sky-200">
+                                <span class="text-sky-900 font-semibold">{{point.question}}</span>
+                                <span class="transition group-open:rotate-180 group-open:translate-y-3 leading-0 text-sky-950 font-black text-xl">⌄</span>
+                            </summary>
+
+                            <div class="p-4 border-t-2 border-sky-800">
+                                {{point.text|safe}}
+                            </div>
+                        </details>
+                    {% endfor %}
+                </div>
+           </div>
+        </div>
+        <div class="fixed top-0 md:flex flex-col w-full h-full z-0 blur-sm">
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ ПОМОЩЬ</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform rotate-12 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+        </div>
+    </div>
+{% endblock content %}
+    

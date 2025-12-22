@@ -1,0 +1,66 @@
+{% extends 'layouts/main.html' %}
+    
+<!--===========CONTENT=============-->
+
+{% block content %}
+    <div class="w-full flex flex-col-reverse space-y-10 space-y-reverse md:flex-row md:space-y-0 space-x-0 md:justify-end md:p-10 md:space-x-10 md:items-center h-full">
+        <div id="login_tablet" class="fixed top-0 md:flex flex-col w-full h-full z-0 blur-sm">
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">АККАУНТ {{user.username}} АККАУНТ {{user.username}} АККАУНТ {{user.username}}</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">АККАУНТ {{user.username}} АККАУНТ {{user.username}} АККАУНТ {{user.username}}</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">АККАУНТ {{user.username}} АККАУНТ {{user.username}} АККАУНТ {{user.username}}</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">АККАУНТ {{user.username}} АККАУНТ {{user.username}} АККАУНТ {{user.username}}</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">АККАУНТ {{user.username}} АККАУНТ {{user.username}} АККАУНТ {{user.username}}</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
+            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+        </div>
+        <div class="{% if not show_menu %}hidden{% endif %} bg-sky-50 rounded-2xl text-black z-1 p-10 h-full w-full md:w-3/4">{% block data %}{% endblock %}</div>
+        <div class="bg-sky-50 rounded-2xl text-black z-1 p-10 h-fit self-start w-full md:w-100 md:min-w-100 flex flex-col items-center">
+            <div class="bg-sky-400 w-50 h-50 rounded-full border-2 border-sky-800 overflow-hidden"><img src="{{profile.avatar.url}}" class="w-full h-full object-cover"/></div>
+            <div class="pt-2 text-2xl">{{profile.displayname}}</div>
+            <div class="pb-2 text-2xl">АКА {{profile.servername}}</div>
+            {% if profile.is_online%}
+                <div class="text-green-500 font-bold">В сети</div>
+            {% else %}
+                <div class="text-neutral-500 font-bold">Не в сети {% if see_full_profile %}[{{profile.last_seen}}]{% endif %}</div>
+            {% endif %}
+            {% if see_full_profile %}
+            <div class="p-2">[{{profile_user.username}}]</div>
+            {% endif %}
+            <div class="flex space-x-2 items-center">
+                {% if groups|length > 0 %}
+                    <span>Роли:</span>
+                    {% for group in groups %}
+                        <span class="{{group.profile.style}}">{{group}}</span>
+                    {% endfor %}
+                {% else %}
+                    <span>Нет ролей</span>
+                {% endif %}
+            </div>
+            {% if profile.bio != None or profile.bio != '' or profile.bio != 'None' %}
+                <div class="border-2 p-4 w-full mt-4 border-neutral-600"><span>О себе: </span>{{profile.bio}}</div>
+            {% endif %}
+            {% if is_owner or edit_profile %}
+                <hr class="w-full my-10 text-neutral-400"/>
+                <ul class="w-full flex flex-col space-y-5">
+                    <li class="w-full"><a href="{% url 'notifications' profile_user.username %}" class="block bg-neutral-300 border-b-2 transition-all duration-300 hover:bg-neutral-500 border-neutral-800 p-3 px-4">Уведомления</a></li>
+                    <li class="w-full"><a href="{% url 'edit' profile_user.username %}" class="block bg-neutral-300 border-b-2 transition-all duration-300 hover:bg-neutral-500 border-neutral-800 p-3 px-4">Редактировать профиль</a></li>
+                    {% if is_owner %}
+                    <li class="w-full"><form action="{% url 'logout' %}" class="block w-full" method="post">
+                            {% csrf_token %}
+                            <button class="block w-full text-start cursor-pointer bg-neutral-300 border-b-2 transition-all duration-300 hover:bg-neutral-500 border-neutral-800 p-3 px-4" type="submit">Выйти</button>
+                        </form></li>
+                    {% endif %}
+            {% endif %}
+            </ul>
+        </div>
+    </div>
+{% endblock content %}
+    

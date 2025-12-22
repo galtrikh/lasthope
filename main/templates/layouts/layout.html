@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <!--=============META=============-->
+    <meta charset="utf-8">
+    <meta name="description" content="{% block description %}{% endblock %}">
+    <meta name="keywords" content="{% block keywords %}{% endblock %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--=============TITLE=============-->
+    <title>{% block title %}{% endblock %}</title>
+    <!--=============LOADS=============-->
+    {% load static %}
+    {% load tailwind_tags%}
+    {% comment %} <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}"/> {% endcomment %}
+    {% comment %} <link href="{% static 'css/tailwind.css' %}" rel="stylesheet"> {% endcomment %}
+    {% tailwind_css %}
+    <!--============FONTS===============-->
+    <script src="https://kit.fontawesome.com/c0a3216440.js" crossorigin="anonymous"></script>
+    <!--============FAVICON=============-->
+    <link rel="icon" href="{% static 'ico/favicon.ico' %}" type="image/x-icon"/>
+    <!--==============EXTRA=============-->
+    {% block extra %}
+    {% endblock %}
+</head>
+<body>
+    {% block layout_content %}
+    {% endblock %}
+    <!--===========SCRIPT==============-->
+    <script type="text/javascript" src="{% static 'js/script.js' %}"></script>
+</body>    
+</html>

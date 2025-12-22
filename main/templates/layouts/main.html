@@ -1,0 +1,135 @@
+{% extends 'layouts/layout.html' %}
+
+{% block extra%}
+{% endblock%}
+
+{% block layout_content %}
+    <div id="app" class="flex flex-col h-screen dark:bg-neutral-800 bg-blue-50">
+        <header class="flex md:flex-nowrap justify-between items-center w-full bg-sky-700 shadow-accent p-1 px-10 text-white z-11">         
+            <div class="p-3 px-5 font-black select-none md:text-nowrap w-fit">"ПОСЛЕДНЯЯ НАДЕЖДА" V34</div>
+            <button id="burger_btn" class="block p-2 px-3 rounded-xl hover:bg-sky-500 md:hidden"><i class="fa-solid fa-bars text-2xl"></i></button>
+            <div id="burger_menu" class="opacity-0 top-0 left-0 z-50 mt-20 transform translate-y-full fixed pointer-events-none transition-all duration-300 bg-sky-900 md:bg-transparent rounded-xl w-full text-2xl text-center md:opacity-100 md:mt-0 flex flex-col-reverse md:flex-row md:items-center md:justify-between md:pointer-events-auto md:text-xl md:w-full md:top-auto md:left-auto md:transform-none md:relative md:translate-0">
+                <ul class="w-full md:w-fit flex-wrap md:flex-nowrap md:flex flex-col md:flex-row justify-center md:justify-between items-center md:space-x-4 space-y-4 md:space-y-0">
+                    <li><a class="{% if request.path == '/' %}bg-sky-500{% endif %} w-full md:w-fit font-semibold p-1 pb-2 px-4 rounded-full hover:bg-sky-300" href="{% url 'main' %}">Главная</a></li>
+                    <li><a class="{% if request.path|slice:':7' == '/forum/' %}bg-sky-500{% endif %} w-full md:w-fit font-semibold p-1 pb-2 px-4 rounded-full hover:bg-sky-300" href="{% url 'forum' %}">Форум</a></li>
+                    <li><a class="{% if request.path == '/news/' %}bg-sky-500{% endif %} w-full md:w-fit font-semibold p-1 pb-2 px-4 rounded-full hover:bg-sky-300" href="{% url 'news' %}">Новости</a></li>
+                    <li><a class="{% if request.path == '/help/' %}bg-sky-500{% endif %} w-full md:w-fit font-semibold p-1 pb-2 px-4 rounded-full hover:bg-sky-300" href="{% url 'help' %}">Помощь</a></li>
+                </ul>
+                {% if not user.is_authenticated %}
+                    <ul class="
+                    w-full 
+                    md:w-fit
+                    flex-wrap 
+                    md:flex 
+                    flex-col 
+                    md:flex-row 
+                    justify-between
+                    items-center 
+                    space-x-1
+                    space-y-4
+                    md:space-y-0
+                    mt-4
+                    md:mt-0">
+                        <li><a class="{% if request.path == '/user/login' %} bg-sky-500 {% endif %} font-semibold p-1 pb-2 px-4 rounded-full hover:bg-sky-300" href="{% url 'login' %}">Вход</a></li>              
+                    </ul>
+                {% else %}
+                    <div class="flex md:space-x-4 flex-col-reverse md:space-y-0 md:flex-row space-y-reverse space-y-4 mt-4 md:mt-0 justify-center">
+                        {% if user.is_staff %}
+                            <a href="{% url 'admin:index' %}" class="rounded-full hover:bg-sky-500 p-1 px-4"><i class="fa-solid fa-hammer"></i></a>
+                        {% endif %}
+                        <a href="{% url 'notifications' user.username %}" class="rounded-full hover:bg-sky-500 p-1 px-4 flex items-center justify-center"><i class="fa-solid fa-bell"></i>{% if notifications_unread %}<div class="bg-red-400 w-2.5 h-2.5 absolute rounded-full transform translate-x-1.5 -translate-y-1.5"></div>{% endif %}</a>
+                        <a href="{% url 'user' user.username %}" class="rounded-full bg-sky-400 mx-auto p-2 px-4 md:p-0 hover:bg-sky-500 flex flex-row items-center"><div class="bg-sky-400 rounded-full w-10 h-10 overflow-hidden"><img src="{{user.profile.avatar.url}}" class="w-full h-full object-cover"/></div><span class="p-1 pb-2 px-4 cursor-pointer">{{user.profile.displayname}}</span></a>
+                    </div>
+                     {% comment %} <form action="{% url 'logout' %}" method="post">
+                        {% csrf_token %}
+                        <button class="
+                        p-1 
+                        px-3 
+                        rounded-xl
+                        w-full
+                        cursor-pointer
+                        mt-4
+                        md:mt-0 
+                hover:bg-sky-500" type="submit">Выйти</button>
+                    </form> {% endcomment %}
+                {% endif %}
+            </div>
+        </header>
+        <main class="dark:text-white text-black" style="flex: 1 1 auto;">
+            
+            {% block content %}
+                
+            {% endblock %}
+    
+        </main>
+        <footer class="
+        bg-sky-950 
+        p-4 
+        text-white
+        z-10">
+            <div class="
+            flex
+            flex-col
+            w-full
+            text-center
+            md:text-left
+            md:flex-row
+            md:items-center
+            md:justify-around">
+                <ul class="*:mt-3.5 md:*:mt-0 *:hover:underline *:cursor-pointer">
+                    <li><a href="{% url 'main' %}">Главная</a></li>
+                    <li><a href="{% url 'forum' %}">Форум</a></li>
+                    <li><a href="{% url 'news' %}">Новости</a></li>
+                    <li><a href="{% url 'help' %}">Помощь</a></li>
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'user' user.username %}">Аккаунт</a></li>
+                    {% endif %}
+                </ul>
+                <script>
+                    document.addEventListener('click', function (e) {
+                    const el = e.target.closest('[data-copy]');
+                    if (!el) return;
+
+                    const text = el.dataset.copy;
+                    if (!text) return;
+
+                    navigator.clipboard.writeText(text)
+                        .then(() => {
+                            el.classList.add('opacity-70');
+
+                            // визуальный фидбек
+                            const oldText = el.textContent;
+                            el.textContent = 'Скопировано';
+
+                            setTimeout(() => {
+                                el.textContent = oldText;
+                                el.classList.remove('opacity-70');
+                            }, 1000);
+                        })
+                        .catch(() => {
+                            alert('Не удалось скопировать');
+                        });
+                });
+
+                </script>
+                <ul class="*:mt-3.5 md:*:mt-0">
+                    {% for obj in footer_info %}
+                        <li>
+                        {% if obj.action_type == 'copy' %}
+                            <button data-copy="{{ obj.copy_data }}" class="hover:underline cursor-pointer" title="Скопировать">{{obj.data}}</button>
+                        {% elif obj.action_type == 'link' %}
+                            <a href="{{ obj.link_data }}" class="hover:underline cursor-pointer">{{obj.data}}</a>
+                        {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="
+            w-full
+            text-center
+            mt-5">
+                <span>"ПОСЛЕДНЯЯ НАДЕЖДА V34" © 2026</span>
+            </div>
+        </footer>
+    </div>
+{% endblock %}

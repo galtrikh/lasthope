@@ -1,0 +1,40 @@
+{% extends 'layouts/user.html' %}
+
+<!--===========LOADS=============-->
+<!--===========BLOCKS=============-->
+{% block title %}
+    user
+{% endblock title %}
+
+
+{% block description %}
+    description
+{% endblock description %}
+    
+
+{% block keywords %}
+    keywords
+{% endblock keywords %}
+    
+<!--===========CONTENT=============-->
+
+{% block data %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label for="displayname" class="p-2 w-fit rounded-l-2xl text-nowrap text-neutral-900">Имя пользователя</label>
+    {{ form.displayname }}
+    <label for="bio" class="p-2 w-fit rounded-l-2xl text-nowrap text-neutral-900">О себе</label>
+    {{ form.bio }}
+    <label for="avatar" class="p-2 w-fit rounded-l-2xl text-nowrap text-neutral-900">Аватар</label>
+    {{ form.avatar }}
+    {% if can_edit_profile_gropus %}
+        <label for="displayname" class="p-2 w-fit rounded-l-2xl text-nowrap text-neutral-900">Роли:</label>
+        {{ form.groups }}
+    {% endif %}
+    {% if edit_user_perms %}
+        <label for="displayname" class="p-2 w-fit rounded-l-2xl text-nowrap text-neutral-900">Права:</label>
+        {{ form.permissions }}
+    {% endif %}
+    <button type="submit" class="bg-sky-700 text-white p-2 rounded-full mt-4">Сохранить</button>
+</form>
+{% endblock %}

@@ -1,0 +1,444 @@
+{% extends 'layouts/forum.html' %}
+
+<!--===========LOADS=============-->
+<!--===========BLOCKS=============-->
+{% block title %}
+    user
+{% endblock title %}
+
+
+{% block description %}
+    description
+{% endblock description %}
+    
+
+{% block keywords %}
+    keywords
+{% endblock keywords %}
+
+{% block extra %}
+    {{ form.media }}
+
+    <style type="text/css">
+        .post-content {
+    line-height: 1.6;
+    color: #0f172a; /* slate-900 */
+    word-wrap: break-word;
+}
+
+/* ===== Заголовки ===== */
+.post-content h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 1.5em 0 0.8em;
+}
+
+.post-content h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 1.4em 0 0.8em;
+}
+
+.post-content h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 1.3em 0 0.7em;
+}
+
+.post-content h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 1.2em 0 0.6em;
+}
+
+.post-content h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.post-content h6 {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* ===== Абзацы ===== */
+.post-content p {
+    margin: 0.75em 0;
+}
+
+/* ===== Списки ===== */
+.post-content ul,
+.post-content ol {
+    padding-left: 1.5em;
+    margin: 0.75em 0;
+}
+
+.post-content ul {
+    list-style-type: disc;
+}
+
+.post-content ol {
+    list-style-type: decimal;
+}
+
+.post-content li {
+    margin: 0.3em 0;
+}
+
+/* todoList */
+.post-content ul.todo-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.post-content ul.todo-list li {
+    display: flex;
+    align-items: center;
+}
+
+.post-content ul.todo-list input {
+    margin-right: 0.5em;
+}
+
+/* ===== Цитаты ===== */
+.post-content blockquote {
+    border-left: 4px solid #94a3b8;
+    padding: 0.75em 1em;
+    margin: 1em 0;
+    background: #f8fafc;
+    font-style: italic;
+    color: #475569;
+}
+
+/* ===== Код ===== */
+.post-content code {
+    background: #e2e8f0;
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.95em;
+}
+
+.post-content pre {
+    background: #020617;
+    color: #e5e7eb;
+    padding: 1em;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1em 0;
+}
+
+.post-content pre code {
+    background: none;
+    padding: 0;
+}
+
+/* ===== Ссылки ===== */
+.post-content a {
+    color: #0284c7;
+    text-decoration: underline;
+}
+
+.post-content a:hover {
+    color: #0369a1;
+}
+
+/* ===== Изображения ===== */
+.post-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 1em 0;
+}
+
+.post-content figure {
+    margin: 1em 0;
+}
+
+.post-content figcaption {
+    text-align: center;
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-top: 0.5em;
+}
+
+/* image styles */
+.post-content .image-style-align-left {
+    float: left;
+    margin-right: 1em;
+}
+
+.post-content .image-style-align-right {
+    float: right;
+    margin-left: 1em;
+}
+
+.post-content .image-style-align-center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ===== Таблицы ===== */
+.post-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0;
+}
+
+.post-content th,
+.post-content td {
+    border: 1px solid #cbd5f5;
+    padding: 0.5em;
+}
+
+.post-content th {
+    background: #e0e7ff;
+    font-weight: 600;
+}
+
+/* ===== Горизонтальная линия ===== */
+.post-content hr {
+    border: none;
+    border-top: 1px solid #cbd5e1;
+    margin: 2em 0;
+}
+
+/* ===== Выравнивание ===== */
+.post-content .text-left { text-align: left; }
+.post-content .text-center { text-align: center; }
+.post-content .text-right { text-align: right; }
+.post-content .text-justify { text-align: justify; }
+
+/* ===== Media embed ===== */
+.post-content iframe {
+    max-width: 100%;
+    border-radius: 8px;
+}
+
+/* ===== Очистка float ===== */
+.post-content::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+/* списки */
+.ck-content ul,
+.ck-content ol {
+    padding-left: 1.5em;
+    margin: 1em 0;
+    list-style-position: inside;
+}
+
+/* todo list */
+.ck-content .todo-list {
+    padding-left: 2rem;
+}
+
+.ck-content .todo-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5em;
+    margin: 0.4em 0;
+}
+
+.ck-content .todo-list li input[type="checkbox"] {
+    margin-top: 0.25em;
+    flex-shrink: 0;
+}
+
+/* редактор */
+.ck-editor__editable {
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+
+    </style>
+{% endblock %}
+<!--===========CONTENT=============-->
+
+{% block data %}
+    <div class="px-3 pb-4 flex space-x-1 items-center">
+        <a href="{% url 'forum' %}" class="text-neutral-600 hover:text-neutral-800 hover:underline h-full">Форум</a>
+            <span class="select-none text-center text-neutral-600">></span>
+        <a href="{% url 'category' cat_slug=category.slug %}" class="hover:underline hover:text-neutral-800 text-neutral-600">{{category.name}}</a>
+            <span class="select-none text-center text-neutral-600">></span>
+        <a href="{% url 'topic' cat_slug=category.slug topic_id=topic.id %}" class="text-neutral-600 hover:text-neutral-800 hover:underline">{{topic.title}}</a>
+    </div>
+    <div>
+        <a href="{% url 'category' cat_slug=category.slug %}" class="w-full h-full font-bold text-2xl p-4">{{category.name}}</a>
+    </div>
+    <div class="bg-neutral-300 p-4 flex items-center justify-between">
+        <div class="flex space-x-4 w-fit">
+            <div class="w-20 h-20 bg-sky-500 rounded-full overflow-hidden">
+                <img src="{{topic.author.profile.avatar.url}}" class="w-20 h-20 object-cover"/>
+            </div>
+            <div class="flex flex-col justify-around">
+                <a href="{% url 'user' topic.author.username %}">{{topic.author.profile.displayname}}</a>
+                <span class="{{topic.author.groups.first.profile.style}}">{{topic.author.groups.first}}</span>
+            </div>
+        </div>
+        <a href="{% url 'topic' cat_slug=category.slug topic_id=topic.id %}" class="w-full h-full text-lg font-semibold p-4 mb-3 ">{{topic.title}}</a>
+    </div>
+        {% if posts|length > 0 %}
+            {% for post in posts %} 
+            <div id="post-{{ post.obj.id }}" class="p-2 border-b-2 border-b-black">
+                <div class="border-2 border-sky-400 flex flex-col" data-post-id="{{post.obj.id}}">
+                    <div class="{% if post.obj.visible %}bg-sky-200 {% else %} bg-neutral-300 {% endif %} px-4 p-2 flex flex-col md:flex-row justify-between md:items-center">
+                        <div class="flex space-x-4 items-center">
+                            <div class="bg-sky-400 w-15 h-15 rounded-full overflow-hidden">
+                                <img src="{{post.obj.author.profile.avatar.url}}" class="w-full h-full object-cover"/>
+                            </div>
+                            <div class="flex flex-col space-y-1">
+                                <span>
+                                    <a href="{% url 'user' post.obj.author %}">
+                                        <strong>{{post.obj.author.profile.displayname}}</strong> ака [{{post.obj.author.profile.servername}}]
+                                    </a>
+                                </span>
+                                <span class="{{post.obj.author.groups.first.profile.style}}">
+                                    {{post.obj.author.groups.first.name}}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-3">
+                            {% if post.is_owner or can_edit_another_post and not post.is_safety%}
+                                {% if can_hide_post %}
+                                    {% if post.obj.visible %}
+                                        <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'hide' %}">
+                                            {% csrf_token %}
+                                            <button class="text-sky-50 bg-sky-500 p-2 rounded-full px-2.5 hover:bg-sky-700 cursor-pointer" title="Скрыть">
+                                                <i class="fa-regular fa-eye-slash"></i>
+                                            </button>    
+                                        </form>
+                                    {% else %}
+                                        <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'show' %}">
+                                            {% csrf_token %}
+                                            <button class="text-sky-50 bg-sky-500 p-2 rounded-full px-3 hover:bg-sky-700 cursor-pointer" title="Показать">
+                                                <i class="fa-regular fa-eye"></i>
+                                            </button>    
+                                        </form>
+                                    {% endif %}
+                                {% endif %}
+                                {% if can_pin_post %}
+                                    {% if post.obj.pinned %}
+                                        <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'unpin' %}">
+                                            {% csrf_token %}
+                                            <button class="text-sky-50 bg-sky-500 p-2 rounded-full px-3 hover:bg-sky-700 cursor-pointer" title="Открепить">
+                                                <i class="fa-solid fa-thumbtack-slash"></i>
+                                            </button>    
+                                        </form>
+                                    {% else %}
+                                        <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'pin' %}">
+                                            {% csrf_token %}
+                                            <button class="text-sky-50 bg-sky-500 p-2 rounded-full px-3.5 hover:bg-sky-700 cursor-pointer" title="Закрепить">
+                                                <i class="fa-solid fa-thumbtack"></i>
+                                            </button>    
+                                        </form>
+                                    {% endif %}
+                                {% endif %}
+                                {% if can_edit_post %}
+                                    <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'edit' %}">
+                                        {% csrf_token %}
+                                        <button class="text-sky-50 bg-sky-500 p-2 rounded-full px-3 hover:bg-sky-700 cursor-pointer" title="Редактировать">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>    
+                                    </form>
+                                {% endif %}
+                                {% if can_delete_post and not can_really_delete_post %}
+                                    <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'delete' %}">
+                                        {% csrf_token %}
+                                        <button class="text-red-50 bg-red-500 p-2 rounded-full px-3.5 hover:bg-red-700 cursor-pointer" title="Удалить">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>    
+                                    </form>
+                                {% endif %}
+                                {% if can_really_delete_post %}
+                                    <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'true_delete' %}" onsubmit="return confirm('Окончательно удалить пост?')">
+                                        {% csrf_token %}
+                                        <button class="text-red-50 bg-red-500 p-2 rounded-full px-3.5 hover:bg-red-700 cursor-pointer" title="Удалить">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>    
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                            <div class="flex flex-col">
+                                <span>Опубликовано {{post.obj.created_at}}</span>
+                                {% if post.obj.edited %}
+                                    <span class="text-neutral-500">Изменено {{post.obj.updated_at}}</span>
+                                {% endif %}
+                                {% if post.obj.deleted %}
+                                <span class="text-red-500 font-bold">УДАЛЕНО ПОЛЬЗОВАТЕЛЕМ</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        id="post-content-{{ post.obj.id }}"
+                        class="post-content prose max-w-full p-2"
+                        data-original="{{ post.obj.content|escape }}"
+                    >
+                        {{ post.obj.content|safe }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="w-full text-center p-4">Скорее напиши первый пост в теме и не забывай соблюдать правила</div>
+        {% endif %}
+            {% if is_auth and can_post%}
+                {% if not closed or can_post_closed %}
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="p-4">
+                            {{ form.content }}
+                        </div>
+                        <p class="px-4 text-neutral-500">Перед тем как что-то написать, ознакомьтесь с правилами форума во избежание автоматической блокировки</p>
+                        <div class="flex p-4 space-x-4">
+                            <button class="bg-sky-400 hover:bg-sky-600 px-4 p-2 rounded-full cursor-pointer" type="submit">Сохранить</button>
+                        </div>
+                    </form>
+
+                {% elif closed and not can_post_closed %}
+                    <div class="p-4">
+                        Это обсуждение закрыто администратором 
+                    </div>
+                {% endif %}
+                <div class="p-4 flex space-x-4 items-center">
+                {% if can_close_topic %}
+                    {% if not closed %}
+                        <form method="post" action="{% url 'topic_edit' category.slug topic.id 'close' %}">{% csrf_token %}<button class="bg-sky-400 hover:bg-sky-600 px-4 p-2 rounded-full cursor-pointer" type="submit">Закрыть тему</button></form>
+                    {% else %}
+                        <form method="post" action="{% url 'topic_edit' category.slug topic.id 'unclose' %}">{% csrf_token %}<button class="bg-sky-400 hover:bg-sky-600 px-4 p-2 rounded-full cursor-pointer" type="submit">Открыть тему</button></form>
+                    {% endif %}
+                {% endif %}
+                {% if can_pin_topic %}
+                    {% if not pinned %}
+                        <form method="post" action="{% url 'topic_edit' category.slug topic.id 'pin' %}">{% csrf_token %}<button class="bg-sky-400 hover:bg-sky-600 px-4 p-2 rounded-full cursor-pointer" type="submit">Закрепить тему</button></form>
+                    {% else %}
+                        <form method="post" action="{% url 'topic_edit' category.slug topic.id 'unpin' %}">{% csrf_token %}<button class="bg-sky-400 hover:bg-sky-600 px-4 p-2 rounded-full cursor-pointer" type="submit">Открепить тему</button></form>
+                    {% endif %}
+                {% endif %}
+                {% if can_delete_topic %}
+                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'delete' %}" onsubmit="return confirm('Удалить тему?')">{% csrf_token %}<button class="bg-red-500 hover:bg-red-600 px-4 p-2 rounded-full cursor-pointer" type="submit">Удалить тему</button></form>
+                {% endif %}
+                </div>
+            {% elif not is_auth %}
+                <div class="p-4">
+                    <a href="{% url 'login' %}" class="text-sky-700 underline">Войди</a> чтобы оставлять сообщения на форуме 
+                </div>
+            {% elif not can_post %}
+                <div class="p-4">
+                    Администратор запретил вам оставлять сообщения на форуме 
+                </div>
+            {% endif %}
+            {% comment %} {% endfor %}
+        {% else %}
+            Тут пока нет постов
+        {% endif %} {% endcomment %}
+
+
+{% endblock data %}

@@ -1,0 +1,37 @@
+{% extends 'layouts/forum.html' %}
+
+<!--===========LOADS=============-->
+<!--===========BLOCKS=============-->
+{% block title %}
+    user
+{% endblock title %}
+
+
+{% block description %}
+    description
+{% endblock description %}
+    
+
+{% block keywords %}
+    keywords
+{% endblock keywords %}
+    
+<!--===========CONTENT=============-->
+
+{% block data %}
+
+{% if categories|length > 0 %}
+    {% for category in categories %}
+        <div class="bg-sky-300 hover:bg-sky-500 cursor-pointer px-3 w-full">
+            <a href="{% url 'category' cat_slug=category.slug %}" class="cursor-pointer px-3 w-full">
+                <div class="font-bold">{{category.name}}</div>
+                <div>{{category.description}}</div>
+            </a>
+        </div>
+    {% endfor %}
+{% else %}
+    Форум пуст
+{% endif %}
+
+{% endblock %}
+    

@@ -1,0 +1,88 @@
+{% extends 'layouts/user.html' %}
+
+<!--===========LOADS=============-->
+<!--===========BLOCKS=============-->
+{% block title %}
+    user
+{% endblock title %}
+
+
+{% block description %}
+    description
+{% endblock description %}
+    
+
+{% block keywords %}
+    keywords
+{% endblock keywords %}
+    
+<!--===========CONTENT=============-->
+
+{% block data %}
+<div class="">
+    <div class="bg-white shadow w-full">
+        {% for n in notifications %}
+            <div class="p-4 {% if not n.is_read %}bg-sky-100{% endif %}">
+                {% if n.actor_type == 'user' %}
+                    {% if n.type == 'admin' %}
+                        <strong>{{ n.get_type_display }}</strong><br>
+                    {% elif n.type == 'other' %}
+                        <strong>{{ n.get_type_display }}</strong><br>
+                    {% elif n.type == 'poll_finished' %}
+                        <strong>{{ n.get_type_display }}</strong><br>
+                    {% else %}
+                        <strong>{{ n.get_type_display }} пользователем <a href="{% url 'user' n.actor.username %}" class="p-2 px-4 text-sky-50 bg-sky-500 hover:bg-sky-700 m-2 rounded-full">{{n.actor.profile.displayname}}</a></strong><br>
+                    {% endif %}
+                {% elif n.actor_type == 'system' %}
+                    <strong>[СИСТЕМА] {{ n.get_type_display }}</strong><br>
+                {% endif %}
+
+                {% if n.type == 'post_pinned' %}
+                    Ваш пост был закреплён в теме "{{n.content_object.topic.title}}"
+                {% elif n.type == 'post_unpinned' %}
+                    Ваш пост был откреплен в теме "{{n.content_object.topic.title}}"
+                {% elif n.type == 'post_edited' %}
+                    Ваш <a href="{% url 'topic' cat_slug=n.content_object.topic.category.slug topic_id=n.content_object.topic.id %}#post-{{n.content_object.id}}" class="text-sky-700">пост</a> был изменен в теме "{{n.content_object.topic.title}}"
+                {% elif n.type == 'post_deleted' %}
+                    Ваш пост <br><div class="bg-neutral-300 p-4">{{n.data.content|safe|slice:300}}</div><br> был удалён в теме "{{n.data.topic}}"
+                {% elif n.type == 'topic_deleted' %}
+                    Тема «{{ n.data.title }}» удалена
+                {% elif n.type == 'topic_pinned' %}
+                    Тема «{{ n.content_object.title }}» закреплена
+                {% elif n.type == 'topic_unpinned' %}
+                    Тема «{{ n.content_object.title }}» откреплена
+                {% elif n.type == 'topic_closed' %}
+                    Тема «{{ n.content_object.title }}» закрыта
+                {% elif n.type == 'topic_unclosed' %}
+                    Тема «{{ n.content_object.title }}» открыта
+                {% elif n.type == 'permission_added' %}
+                    Вам выданы права: {% for p in n.data.permissions %}<br>"{{ p }}" {% endfor %}
+                {% elif n.type == 'permission_removed' %}
+                    У вас отозваны права: {% for p in n.data.permissions %}<br>"{{ p }}" {% endfor %}
+                {% elif n.type == 'group_added' %}
+                    Вам выданы роли: {% for g in n.data.groups %}<br>"{{ g }}" {% endfor %}
+                {% elif n.type == 'group_removed' %}
+                    У вас отозваны роли: {% for g in n.data.groups %}<br>"{{ g }}" {% endfor %}
+                {% elif n.type == 'poll_finished' %}
+                    Голосование "{{n.data.title}}" было окончено. Выбран вариант "{{n.data.winner}}" 
+                {% elif n.type == 'admin' %}
+                    {{ n.data.text }}
+                {% elif n.type == 'other' %}
+                    {{n.data.data}}
+                {% elif n.type == 'warning' %}
+                    {{n.data.reason}}
+                {% elif n.type == 'moderation_alert' %}
+                    Нарушение [{{n.data.author}}] id поста - {{n.data.post_id}}
+                {% endif %}
+
+                <div class="text-xs text-gray-500">
+                    {{ n.created_at }}
+                </div>
+            </div>
+        {% empty %}
+            <div class="p-2 text-gray-400">Нет уведомлений</div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
