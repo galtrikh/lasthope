@@ -36,9 +36,9 @@ def topics(request, cat_slug):
         )
         new_topic.save()
     if request.user.has_perm('forum_app.can_see_hidden_topics'):
-        topicslist = ForumTopic.objects.filter(category=category).order_by('-pinned', '-created_at')
+        topicslist = ForumTopic.objects.filter(category=category).order_by('-pinned', 'id')
     else:
-        topicslist = ForumTopic.objects.filter(visible=True, category=category).order_by('-pinned', '-created_at')
+        topicslist = ForumTopic.objects.filter(visible=True, category=category).order_by('-pinned', 'id')
     can_create_topic = request.user.has_perm('forum_app.can_create_topic')
     data = {
         'category' : category,
@@ -51,9 +51,9 @@ def posts(request, cat_slug, topic_id):
     category = ForumCategory.objects.get(slug=cat_slug)
     topic = ForumTopic.objects.get(id=topic_id)
     if request.user.has_perm('forum_app.can_see_hidden_post'):
-        postslist = ForumPost.objects.filter(topic=topic).order_by('-pinned')
+        postslist = ForumPost.objects.filter(topic=topic).order_by('-pinned', 'id')
     else:
-        postslist = ForumPost.objects.filter(visible=True, topic=topic).order_by('-pinned')
+        postslist = ForumPost.objects.filter(visible=True, topic=topic).order_by('-pinned', 'id')
     posts = []
     for post in postslist:
         post.content = forum_filters.safe_html(post.content)

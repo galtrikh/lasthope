@@ -42,7 +42,11 @@
                 {% elif n.type == 'post_unpinned' %}
                     Ваш пост был откреплен в теме "{{n.content_object.topic.title}}"
                 {% elif n.type == 'post_edited' %}
+                    {% if n.content_object and n.content_object.topic %}
                     Ваш <a href="{% url 'topic' cat_slug=n.content_object.topic.category.slug topic_id=n.content_object.topic.id %}#post-{{n.content_object.id}}" class="text-sky-700">пост</a> был изменен в теме "{{n.content_object.topic.title}}"
+                    {% else %}
+                    Ваш пост был изменен и удален
+                    {% endif %}
                 {% elif n.type == 'post_deleted' %}
                     Ваш пост <br><div class="bg-neutral-300 p-4">{{n.data.content|safe|slice:300}}</div><br> был удалён в теме "{{n.data.topic}}"
                 {% elif n.type == 'topic_deleted' %}

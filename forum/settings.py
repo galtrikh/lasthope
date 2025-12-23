@@ -144,13 +144,13 @@ CKEDITOR_5_CONFIGS = {
             '|',
             'undo', 'redo'
         ],
-
+        
         'heading': {
             'options': [
                 {'model': 'paragraph', 'title': 'Параграф'},
-                {'model': 'heading1', 'view': 'h1', 'title': 'H1'},
-                {'model': 'heading2', 'view': 'h2', 'title': 'H2'},
-                {'model': 'heading3', 'view': 'h3', 'title': 'H3'},
+                {'model': 'heading1', 'view': 'h1', 'title': 'Заголовок 1'},
+                {'model': 'heading2', 'view': 'h2', 'title': 'Заголовок 2'},
+                {'model': 'heading3', 'view': 'h3', 'title': 'Заголовок 3'},
             ]
         },
 
@@ -265,7 +265,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 

@@ -27,6 +27,7 @@
     {{ form.bio }}
     <label for="avatar" class="p-2 w-fit rounded-l-2xl text-nowrap text-neutral-900">Аватар</label>
     {{ form.avatar }}
+    <p id="errorMsg" style="color:red;"></p>
     {% if can_edit_profile_gropus %}
         <label for="displayname" class="p-2 w-fit rounded-l-2xl text-nowrap text-neutral-900">Роли:</label>
         {{ form.groups }}
@@ -36,5 +37,18 @@
         {{ form.permissions }}
     {% endif %}
     <button type="submit" class="bg-sky-700 text-white p-2 rounded-full mt-4">Сохранить</button>
+    <script>
+    const input = document.getElementById('avatar');
+    const error = document.getElementById('errorMsg');
+    input.addEventListener('change', () => {
+        const file = input.files[0];
+        if (file && file.size > 1024*1024) { // 1MB
+            error.textContent = 'Файл слишком большой (макс 1MB)';
+            input.value = ''; // очищаем input
+        } else {
+            error.textContent = '';
+        }
+    });
+    </script>
 </form>
 {% endblock %}

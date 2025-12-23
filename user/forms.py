@@ -8,6 +8,7 @@ from django.contrib.auth.models import Group, Permission
 from core.middleware import get_current_user
 from notification.services import notify
 from notification.models import Notification
+from django.core.exceptions import ValidationError
 
 class SignUpForm(UserCreationForm):
     username = forms.CharField(
@@ -52,7 +53,7 @@ EDITABLE_PERMISSIONS = [
     ('forum_app', 'can_post'),
     ('forum_app', 'can_edit_post'),
     ('forum_app', 'can_delete_post'),
-    ('forum_app', 'can_create_topic'),
+    #('forum_app', 'can_create_topic'),
     ('main', 'can_vote'),
 ]
 
@@ -96,6 +97,13 @@ class EditForm(forms.ModelForm):
         required=False,
         widget=forms.CheckboxSelectMultiple
     )
+
+    def clean_file(self):
+        file = self.cleaned_data['avatar']
+        max_size = 1 * 1024 * 1024  # 1 MB
+        if file.size > max_size:
+            raise ValidationError("Файл слишком большой (макс 1MB)")
+        return file
 
     class Meta:
         model = Profile

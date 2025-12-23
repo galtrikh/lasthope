@@ -40,6 +40,7 @@ ALLOWED_TAGS = [
 
     # чекбоксы (todo list)
     'input',
+    'div',
 ]
 ALLOWED_ATTRS = {
     '*': ['class', 'style'],
@@ -75,6 +76,7 @@ ALLOWED_STYLES = [
 
     'border',
     'border-radius',
+    'font-family',
 ]
 
 ALLOWED_IFRAME_DOMAINS = (
