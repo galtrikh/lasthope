@@ -63,7 +63,7 @@ class MaintenanceModeMiddleware:
         ):
             return self.get_response(request)
 
-        if get_client_ip(request) in AllowedDevIPs.objects.all().values_list('ip', flat=True):
+        if get_client_ip(request) in AllowedDevIPs.objects.filter(enabled=True).values_list('ip', flat=True):
             return self.get_response(request)
 
         # --- доступ для разработчиков ---

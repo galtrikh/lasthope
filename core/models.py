@@ -23,6 +23,7 @@ class SiteSettings(models.Model):
 
 class AllowedDevIPs(models.Model):
     ip = models.CharField(default='127.0.0.1', verbose_name='Разрешенный IP')
+    enabled = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
     def __srt__(self):
         return 'Разрешенные DEV IP'

@@ -15,7 +15,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     
 @admin.register(AllowedDevIPs)
 class AllowedDevIPsAdmin(admin.ModelAdmin):
-    list_display = ('ip', 'updated_at')
+    list_display = ('ip', 'enabled', 'updated_at')
     
 @admin.register(FooterInfo)
 class FooterInfoAdmin(admin.ModelAdmin):
