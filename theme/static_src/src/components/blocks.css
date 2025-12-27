@@ -1,0 +1,224 @@
+@layer components{
+    /* blocks */
+    .tb-block{
+        @apply bg-transparent text-slate-50 border-y border-y-neutral-700 p-2 px-4;
+    }
+    /* styles */
+    .flex-center-between{
+        @apply flex items-center justify-between;
+    }
+    /* buttons */
+    .btn-secondary{
+        @apply bg-neutral-800 max-h-8 text-slate-50 p-2 px-4 rounded shadow shadow-base-300 flex items-center justify-center text-center cursor-pointer;
+    }
+    .btn-secondary:hover{
+        @apply bg-neutral-900;
+    }
+    .btn-trans{
+        @apply bg-transparent p-2 text-neutral-300 cursor-pointer;
+    }
+    .btn-trans:hover{
+        @apply text-neutral-400;
+    }
+    .post-content {
+        @apply leading-1 text-white wrap-break-word;
+    
+    }
+
+    /* post-content */
+
+    /* ===== Заголовки ===== */
+    .post-content h1 {
+        @apply text-4xl font-bold m-2 my-3;
+    }
+
+    .post-content h2 {
+        @apply text-3xl font-bold m-2;
+    }
+
+    .post-content h3 {
+        @apply text-2xl font-bold m-1;
+    }
+
+    .post-content h4 {
+        @apply text-xl font-semibold m-1;
+    }
+
+    .post-content h5 {
+        @apply text-lg font-semibold;
+    }
+
+    /* ===== Абзацы ===== */
+    .post-content p {
+        @apply m-4;
+    }
+
+    /* ===== Списки ===== */
+    .post-content ul,
+    .post-content ol {
+        @apply pl-4 m-0.5;
+    }
+
+    .post-content ul {
+        @apply list-disc;
+    }
+
+    .post-content ol {
+        @apply list-decimal;
+    }
+
+    .post-content li {
+        @apply my-4 m-2;
+    }
+
+    /* todoList */
+    .post-content ul.todo-list {
+        @apply list-none pl-0;
+    }
+
+    .post-content ul.todo-list li {
+        @apply flex items-center;
+    }
+
+    .post-content ul.todo-list input {
+        @apply mr-2;
+    }
+
+    /* ===== Цитаты ===== */
+    .post-content blockquote {
+        @apply border-l-4 border-l-neutral-500 p-2 mx-4 bg-neutral-400 italic text-neutral-800;
+    }
+
+    /* ===== Код ===== */
+    .post-content code {
+        @apply bg-neutral-700 p-1 rounded font-mono text-sm;
+    }
+
+    .post-content pre {
+        @apply bg-neutral-700 text-neutral-200 p-2 rounded-lg overflow-auto my-1;
+    }
+
+    .post-content pre code {
+        @apply bg-none p-0;
+    }
+
+    /* ===== Ссылки ===== */
+    .post-content a {
+        @apply text-sky-700 underline;
+    }
+
+    .post-content a:hover {
+        @apply text-sky-900;
+    }
+
+    /* ===== Изображения ===== */
+    .post-content img {
+        @apply max-w-full h-auto rounded-lg my-2;
+    }
+
+    .post-content figure {
+        @apply my-4;
+    }
+
+    .post-content figcaption {
+        @apply text-center text-sm text-slate-500 mt-2;
+    }
+
+    /* image styles */
+    .post-content .image-style-align-left {
+        @apply float-left mr-4
+    }
+
+    .post-content .image-style-align-right {
+        @apply float-right ml-4;
+    }
+
+    .post-content .image-style-align-center {
+        @apply block mx-auto;
+    }
+
+    /* ===== Таблицы ===== */
+    .post-content table {
+        @apply w-full border-collapse my-4;
+    }
+
+    .post-content th,
+    .post-content td {
+        @apply border border-sky-200 p-2;
+    }
+
+    .post-content th {
+        @apply bg-sky-100 font-semibold;
+    }
+
+    /* ===== Горизонтальная линия ===== */
+    .post-content hr {
+        @apply border-none border-t border-t-neutral-300;
+    }
+
+    /* ===== Выравнивание ===== */
+    .post-content .text-left { @apply text-left; }
+    .post-content .text-center { @apply text-center; }
+    .post-content .text-right { @apply text-right; }
+    .post-content .text-justify { @apply text-justify; }
+
+    /* ===== Media embed ===== */
+    .post-content iframe {
+        @apply max-w-full rounded-lg;
+    }
+
+    /* ===== Очистка float ===== */
+    .post-content::after {
+        @apply content-none block clear-both;
+    }
+
+    /* списки */
+    .ck-content ul,
+    .ck-content ol {
+        @apply pl-6 my-4 list-inside;
+    }
+
+    /* todo list */
+    .ck-content .todo-list {
+        @apply pl-4;
+    }
+
+    .ck-content .todo-list li {
+        @apply flex items-start gap-1 mx-1;
+    }
+
+    .ck-content .todo-list li input[type="checkbox"] {
+        @apply mt-1 shrink-0;
+    }
+
+    /* редактор */
+    .ck-editor__editable {
+        @apply p-2 overflow-x-auto bg-transparent;
+    }
+    .ck-editor__main{
+        @apply bg-transparent;
+    }
+
+    /* post */
+    .post-t{
+        @apply bg-linear-0 from-0% to-100% to-neutral-800/50 from-neutral-950/50 border-x border-x-neutral-600 border-t border-t-neutral-600;
+    }
+    .post-b{
+        @apply border-x border-neutral-600 border-b border-b-neutral-600;
+    }
+    .post-t-pinned{
+        @apply bg-linear-0 from-0% to-100% to-green-800/50 from-green-950/50 border-x border-x-green-600 border-t border-t-green-600;
+    }
+    .post-t-hidden{
+        @apply bg-linear-0 from-0% to-100% to-amber-500/30 from-amber-700/30 border-x border-x-amber-500 border-t border-t-amber-500;
+    }
+    .post-b-hidden{
+        @apply bg-linear-0 from-0% to-100% from-amber-500/30 to-amber-700/30 border-x border-x-amber-500 border-b border-b-amber-500;
+    }
+    .post-t-deleted{
+        @apply bg-linear-0 from-0% to-100% to-red-500/30 from-red-700/30 border-x border-x-red-500 border-t border-t-red-500
+    }
+    .post-b-deleted{
+        @apply bg-linear-0 from-0% to-100% from-red-500/30 to-red-700/30 border-x border-x-red-500 border-b border-b-red-500
+    }
+}

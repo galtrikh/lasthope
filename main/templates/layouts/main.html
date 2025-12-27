@@ -4,7 +4,7 @@
 {% endblock%}
 
 {% block layout_content %}
-    <div id="app" class="flex flex-col h-screen dark:bg-neutral-800 bg-blue-50">
+    <div id="app" class="flex flex-col min-h-screen">
         <header class="flex md:flex-nowrap justify-between items-center w-full bg-sky-700 shadow-accent p-1 px-10 text-white z-11">         
             <div class="p-3 px-5 font-black select-none md:text-nowrap w-fit">"ПОСЛЕДНЯЯ НАДЕЖДА" V34</div>
             <button id="burger_btn" class="block p-2 px-3 rounded-xl hover:bg-sky-500 md:hidden"><i class="fa-solid fa-bars text-2xl"></i></button>
@@ -55,7 +55,7 @@
                 {% endif %}
             </div>
         </header>
-        <main class="dark:text-white text-black" style="flex: 1 1 auto;">
+        <main class="text-white" style="flex: 1 1 auto;">
             
             {% block content %}
                 

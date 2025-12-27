@@ -97,40 +97,28 @@ def posts(request, cat_slug, topic_id):
             return redirect('topic', cat_slug=category.slug, topic_id=topic.id)
     else:
         form = PostCreationForm
-    is_auth = request.user.is_authenticated
-    can_post = request.user.has_perm('forum_app.can_post')
-    can_post_closed = request.user.has_perm('forum_app.can_post_closed')
-    closed = topic.closed
-    pinned = topic.pinned
-    is_owner = request.user == topic.author
-    can_close_topic = request.user.has_perm('forum_app.can_close_topic') and (not topic.author.has_perm('user.safety') or is_owner) or request.user.is_superuser
-    can_pin_topic = request.user.has_perm('forum_app.can_pin_topic') and (not topic.author.has_perm('user.safety') or is_owner ) or request.user.is_superuser
-    can_delete_topic = request.user.has_perm('forum_app.can_delete_topic') and (not topic.author.has_perm('user.safety') or is_owner ) or request.user.is_superuser
-    can_hide_post = request.user.has_perm('forum_app.can_hide_post')
-    can_pin_post = request.user.has_perm('forum_app.can_pin_post')
-    can_edit_post = request.user.has_perm('forum_app.can_edit_post')
-    can_edit_another_post = request.user.has_perm('forum_app.can_edit_another_post')
-    can_delete_post = request.user.has_perm('forum_app.can_delete_post')
-    can_really_delete_post = request.user.has_perm('forum_app.can_really_delete_post')
+    flag = {
+        'is_auth': request.user.is_authenticated,
+        'can_post': request.user.has_perm('forum_app.can_post'),
+        'can_post_closed': request.user.has_perm('forum_app.can_post_closed'),
+        'is_owner': request.user == topic.author,
+        'can_close_topic': request.user.has_perm('forum_app.can_close_topic') and (not topic.author.has_perm('user.safety') or request.user == topic.author) or request.user.is_superuser,
+        'can_pin_topic': request.user.has_perm('forum_app.can_pin_topic') and (not topic.author.has_perm('user.safety') or request.user == topic.author ) or request.user.is_superuser,
+        'can_delete_topic': request.user.has_perm('forum_app.can_delete_topic') and (not topic.author.has_perm('user.safety') or request.user == topic.author ) or request.user.is_superuser,
+        'can_hide_topic': request.user.has_perm('forum_app.can_hide_topic') and (not topic.author.has_perm('user.safety') or request.user == topic.author ) or request.user.is_superuser,
+        'can_hide_post': request.user.has_perm('forum_app.can_hide_post'),
+        'can_pin_post': request.user.has_perm('forum_app.can_pin_post'),
+        'can_edit_post': request.user.has_perm('forum_app.can_edit_post'),
+        'can_edit_another_post': request.user.has_perm('forum_app.can_edit_another_post'),
+        'can_delete_post': request.user.has_perm('forum_app.can_delete_post'),
+        'can_really_delete_post': request.user.has_perm('forum_app.can_really_delete_post'),
+    }
     data = {
         'category' : category,
         'topic' : topic,
         'posts' : posts,
         'form' : form,
-        'is_auth': is_auth,
-        'can_post': can_post,
-        'can_post_closed': can_post_closed,
-        'closed': closed,
-        'pinned': pinned,
-        'can_close_topic': can_close_topic,
-        'can_pin_topic': can_pin_topic,
-        'can_delete_topic': can_delete_topic,
-        'can_hide_post': can_hide_post,
-        'can_pin_post': can_pin_post,
-        'can_edit_post': can_edit_post,
-        'can_edit_another_post': can_edit_another_post,
-        'can_delete_post': can_delete_post,
-        'can_really_delete_post': can_really_delete_post,
+        'flag': flag,
     }
     return render(request, 'forum_app/posts.html', data)
 
@@ -156,6 +144,22 @@ def posts_edit(request, cat_slug, topic_id, flag):
         notify(
             user=topic.author,
             type=Notification.Type.TOPIC_UNCLOSED,
+            actor=request.user,
+            obj=topic
+        )
+    if flag == 'hide':
+        topic.visible = False
+        notify(
+            user=topic.author,
+            type=Notification.Type.TOPIC_HIDDEN,
+            actor=request.user,
+            obj=topic
+        )
+    if flag == 'show':
+        topic.visible = True
+        notify(
+            user=topic.author,
+            type=Notification.Type.TOPIC_SHOWN,
             actor=request.user,
             obj=topic
         )

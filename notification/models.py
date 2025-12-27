@@ -18,6 +18,8 @@ class Notification(models.Model):
         TOPIC_UNPINNED = 'topic_unpinned', 'Топик откреплен'
         TOPIC_CLOSED = 'topic_closed', 'Обсуждение закрыто'
         TOPIC_UNCLOSED = 'topic_unclosed', 'Обсуждение открыто'
+        TOPIC_HIDDEN = 'topic_hidden', 'Топик скрыт'
+        TOPIC_SHOWN = 'topic_shown', 'Топик отображен'
 
         GROUP_ADDED = 'group_added', 'Вам выдана роль'
         GROUP_REMOVED = 'group_removed', 'Ваша роль была отозвана'
