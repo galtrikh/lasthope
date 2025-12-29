@@ -39,10 +39,14 @@ def topics(request, cat_slug):
         topicslist = ForumTopic.objects.filter(category=category).order_by('-pinned', 'id')
     else:
         topicslist = ForumTopic.objects.filter(visible=True, category=category).order_by('-pinned', 'id')
+    paginator = Paginator(topicslist, 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     can_create_topic = request.user.has_perm('forum_app.can_create_topic')
     data = {
         'category' : category,
-        'topics' : topicslist,
+        'topics' : page_obj,
+        'topics_count': len(topicslist),
         'can_create_topic': can_create_topic
     }
     return render(request, 'forum_app/topics.html', data)
@@ -113,10 +117,16 @@ def posts(request, cat_slug, topic_id):
         'can_delete_post': request.user.has_perm('forum_app.can_delete_post'),
         'can_really_delete_post': request.user.has_perm('forum_app.can_really_delete_post'),
     }
+
+    paginator = Paginator(posts, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     data = {
         'category' : category,
         'topic' : topic,
-        'posts' : posts,
+        'posts' : page_obj,
+        'posts_count': len(posts),
         'form' : form,
         'flag': flag,
     }

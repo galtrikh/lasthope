@@ -42,6 +42,10 @@ class ForumTopic(models.Model):
     visible = models.BooleanField(default=True, verbose_name='Отображается')
     closed = models.BooleanField(default=False, verbose_name='Тема закрыта')
 
+    @property
+    def get_posts(self):
+        return ForumPost.objects.filter(topic=self).order_by('id')
+
     def __str__(self):
         return self.title
     

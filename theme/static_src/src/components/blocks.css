@@ -14,6 +14,12 @@
     .btn-secondary:hover{
         @apply bg-neutral-900;
     }
+    .text-input{
+        @apply bg-white border border-neutral-200 p-1 px-4 text-neutral-900 rounded;
+    }
+    .text-input:focus{
+        @apply outline-none text-neutral-950;
+    }
     .btn-trans{
         @apply bg-transparent p-2 text-neutral-300 cursor-pointer;
     }
@@ -225,18 +231,18 @@
         @apply border-x border-neutral-600 border-b border-b-neutral-600;
     }
     .post-t-pinned{
-        @apply bg-linear-0 from-0% to-100% to-green-800/50 from-green-950/50 border-x border-x-green-600 border-t border-t-green-600;
+        @apply bg-linear-0 from-0% to-100% to-green-300/30 from-lime-600/30 border-x border-x-green-600 border-t border-t-green-600;
     }
     .post-t-hidden{
-        @apply bg-linear-0 from-0% to-100% to-amber-500/30 from-amber-700/30 border-x border-x-amber-500 border-t border-t-amber-500;
+        @apply bg-linear-0 from-0% to-100% to-amber-500/10 from-amber-700/10 border-x border-x-amber-500 border-t border-t-amber-500;
     }
     .post-b-hidden{
-        @apply bg-linear-0 from-0% to-100% from-amber-500/30 to-amber-700/30 border-x border-x-amber-500 border-b border-b-amber-500;
+        @apply bg-linear-0 from-0% to-100% from-amber-500/10 to-amber-700/10 border-x border-x-amber-500 border-b border-b-amber-500;
     }
     .post-t-deleted{
-        @apply bg-linear-0 from-0% to-100% to-red-500/30 from-red-700/30 border-x border-x-red-500 border-t border-t-red-500
+        @apply bg-linear-0 from-0% to-100% to-red-500/10 from-red-700/10 border-x border-x-red-500 border-t border-t-red-500
     }
     .post-b-deleted{
-        @apply bg-linear-0 from-0% to-100% from-red-500/30 to-red-700/30 border-x border-x-red-500 border-b border-b-red-500
+        @apply bg-linear-0 from-0% to-100% from-red-500/10 to-red-700/10 border-x border-x-red-500 border-b border-b-red-500
     }
 }

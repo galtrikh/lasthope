@@ -19,27 +19,99 @@
 <!--===========CONTENT=============-->
 
 {% block data %}
-    <div class="px-3 pb-4 flex space-x-1 items-center">
-        <a href="{% url 'forum' %}" class="text-neutral-600 hover:text-neutral-800 hover:underline h-full">Форум</a>
-            <span class="select-none text-center text-neutral-600">></span>
-        <a href="{% url 'category' cat_slug=category.slug %}" class="hover:underline hover:text-neutral-800 text-neutral-600">{{category.name}}</a>
+    <div>
+        <span class="w-full h-full text-white font-bold text-2xl p-4">{{category.name}}</span>
+        <div class="flex flex-col md:flex-row items-center justify-between p-5" x-data="{open:false, btn:'Создать тему'}">
+            <a href="{% url 'forum' %}" class="btn-secondary">Назад</a>
+            {% if can_create_topic %}   
+                <form x-show="open" x-cloak x-collapse method='POST' class="flex items-center justify-between space-x-5 w-full px-4">{% csrf_token %}<input type="text" name="topic_name" placeholder="Заголовок новой темы" class="text-input w-full" required/><button type="sublit" class="btn-secondary text-nowrap">Создать</button></form>
+                <button class="btn-secondary w-fit text-nowrap" @click="open = !open; if (open) {btn = 'Закрыть'} else {btn = 'Создать тему'}" x-text="btn"></button>
+            {% endif %}
+        </div>
     </div>
-    <div class="flex flex-col md:flex-row items-center justify-between">
-        <a href="{% url 'category' cat_slug=category.slug %}" class="w-full h-full font-bold text-2xl p-4">{{category.name}}</a>
-        {% if can_create_topic %}
-            <form method='POST' class="flex space-x-2 w-full mb-5 md:mb-2">{% csrf_token %}<input type="text" name="topic_name" placeholder="Заголовок новой темы" class="focus:outline-0 border-2 border-sky-500 p-2 px-4 rounded-full w-2/3 md:w-100 md:min-w-100" required/><button type="sublit" class="p-2 px-4 bg-sky-500 text-sky-50 rounded-full text-nowrap mr-5 hover:bg-sky-700 cursor-pointer">Новая тема</button></form>
-        {% endif %}
-    </div>
+    <div class="tb-block space-y-2">
         {% if topics|length > 0 %}
             {% for topic in topics %}
-                <div class="bg-sky-300 hover:bg-sky-500 px-3 p-2 font-bold text-sky-950">
-                    <a href="{% url 'topic' cat_slug=category.slug topic_id=topic.id %}">
-                        <div>{{topic.title}}</div>
-                    </a>
+                <div class="bg-transparent rounded-lg border border-neutral-500 flex flex-col">
+                    {% if topic.pinned or topic.closed %}
+                    <div class="p-2 px-5 rounded-t-lg border-0 space-x-2
+                        {% if topic.pinned %} post-t-pinned
+                        {% elif topic.closed %} post-t-deleted
+                        {% endif %}">
+                        {% if topic.pinned%}<span><i class="fa-solid fa-thumbtack text-green-500/60 mr-2"></i> Закреплено </span>{% endif %}
+                        {% if topic.closed %}<span><i class="fa-solid fa-lock text-red-500/60 mr-2"></i>Тема закрыта</span>{% endif %}
+                    </div>
+                    {% endif %}
+                    <div class="flex w-full items-center justify-between">
+                        <a href="{% url 'topic' cat_slug=category.slug topic_id=topic.id %}" class="flex w-full items-baseline justify-between rounded-md p-3 px-5 hover:bg-neutral-500/30">
+                            <div class="flex flex-col space-y-2">
+                                <div class="text-lg font-semibold">
+                                    {{topic.title}}
+                                </div>
+                                <div class="flex space-x-3 items-center">
+                                    <div class="w-10 h-10 rounded-full overflow-hidden">
+                                        <img src={{topic.author.profile.avatar.url}} class="w-full h-full object-cover"/>
+                                    </div>
+                                    <div class="flex flex-col space-y-1">
+                                        <span>{{topic.author.profile.displayname}}<span class="text-neutral-400"> • {{topic.created_at}}</span></span>
+                                        {% if topic.get_posts.last %}<span class="text-neutral-400">{{topic.get_posts.last.author.profile.displayname}}: {{topic.get_posts.last.created_at}}</span>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col space-y-3 text-neutral-400">
+                                <span>Ответов: <span class="text-white">{{topic.get_posts|length}}</span></span>
+                                <span>Просмотров: <span class="text-white">0</span></span>
+                            </div>
+                        </a>
+                        <div class="self-start p-2 px-4">
+                            <button class="btn-trans"><i class="fa-solid fa-ellipsis"></i></button>
+                        </div>
+                    </div>
                 </div>
             {% endfor %}
         {% else %}
             Категория пока пуста
         {% endif %}
-    
+    </div>
+    <div class="text-neutral-400 p-3 flex items-center justify-between">
+        <div>Темы: {{topics_count}} • Страница {{topics.number}} из {{topics.paginator.num_pages}}</div>
+        {% if topics.paginator.num_pages > 1 %}
+        <div class="flex space-x-1">
+             {% if topics.number > 3 %}
+                <a href="?page=1"
+                class="btn-secondary"
+                title="Первая">
+                    ⟪
+                </a>
+            {% endif %}
+            {% if topics.has_previous %}
+                <a href="?page={{topics.previous_page_number}}" class="btn-secondary">←</a>
+            {% endif %}
+            {% for num in topics.paginator.page_range %}
+                {% if num == topics.number %}
+                    <span class="btn-secondary bg-neutral-900">
+                        {{ num }}
+                    </span>
+                {% elif num > topics.number|add:"-3" and num < topics.number|add:"3" %}
+                    <a href="?page={{ num }}"
+                    class="btn-secondary">
+                        {{ num }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+            {% if topics.has_next %}
+                <a href="?page={{ topics.next_page_number }}"class="btn-secondary">
+                    →
+                </a>
+            {% endif %}
+            {% if topics.number < topics.paginator.num_pages|add:"-2" %}
+                <a href="?page={{ topics.paginator.num_pages }}"
+                class="btn-secondary"
+                title="Последняя">
+                    ⟫
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
 {% endblock %}
