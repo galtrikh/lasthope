@@ -35,7 +35,7 @@
             <a href="{% url 'topic' cat_slug=category.slug topic_id=topic.id %}" class="text-neutral-400 hover:text-neutral-600 hover:underline">{{topic.title}}</a>
         </div>
         <div class="flex items-center space-x-4">
-            <a href="#" class="btn-trans text-xl"><i class="fa-solid fa-magnifying-glass"></i></a>
+            {% comment %} <a href="#" class="btn-trans text-xl"><i class="fa-solid fa-magnifying-glass"></i></a> {% endcomment %}
             <div class="w-10 h-10 bg-transparent rounded-full overflow-hidden hover:border hover:border-neutral-600">
                 <a  href="{% url 'user' topic.author.username %}" class="w-full h-full">
                     <img src="{{topic.author.profile.avatar.url}}" class="w-full h-full object-cover"/>

@@ -20,6 +20,21 @@
     .btn-trans:hover{
         @apply text-neutral-400;
     }
+    .btn-header{
+        @apply bg-transparent p-2 text-neutral-500 cursor-pointer transition duration-200;
+    }
+    .btn-header::after{
+        @apply absolute left-0 -bottom-1 h-1 w-0 transition-all duration-300 bg-white
+    }
+    .btn-header::after:hover{
+        @apply w-full
+    }
+    .btn-header__active{
+        @apply text-white;
+    }
+    .btn-header:hover{
+        @apply text-white;
+    }
     .post-content {
         @apply leading-1 text-white wrap-break-word;
     
@@ -170,6 +185,9 @@
     /* ===== Очистка float ===== */
     .post-content::after {
         @apply content-none block clear-both;
+    }
+    .post-content figure.image {
+        @apply mx-auto;
     }
 
     /* списки */
