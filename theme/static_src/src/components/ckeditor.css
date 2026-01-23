@@ -1,0 +1,294 @@
+@layer components {
+
+    .ck-editor,
+    .ck-content{
+        --ck-color-base-background: theme(colors.base-100);
+        --ck-color-base-foreground: theme(colors.base-200);
+        --ck-color-base-border: theme(colors.base-300);
+
+        --ck-color-toolbar-background: theme(colors.base-200);
+
+        --ck-color-text: theme(colors.base-content);
+        --ck-color-shadow-drop: transparent;
+
+        --ck-color-button-default-hover-background: theme(colors.base-300);
+        --ck-color-button-default-active-background: theme(colors.base-300);
+
+        --ck-color-button-on-background: theme(colors.primary);
+        --ck-color-button-on-hover-background: theme(colors.primary);
+        --ck-color-button-on-color: theme(colors.primary-content);
+
+        --ck-color-dropdown-panel-background: theme(colors.base-200);
+        --ck-color-dropdown-panel-border: 0;
+
+        --ck-color-dialog-background: theme(colors.base-200);
+
+        --ck-accessibility-help-dialog-code-background-color: theme(colors.base-200);
+
+        --ck-color-list-background: theme(colors.base-200);
+
+        --ck-color-list-button-hover-background: theme(colors.base-100);
+
+        --ck-color-widget-drag-handler-icon-color: theme(colors.base-100);
+        --ck-color-split-button-hover-background: theme(colors.base-100);
+
+        --ck-inner-shadow: none;
+        --ck-border-radius: 20px;
+
+        --ck-color-panel-background: theme(colors.base-200);
+
+        --ck-color-base-active-focus: theme(colors.primary);
+        --ck-color-labeled-field-label-background: theme(colors.base-100);
+
+        --ck-color-focus-border: theme(colors.primary);
+        --ck-focus-ring: 0 0 0 2px theme(colors.primary / 40%);
+    }
+
+  /* =========================================================
+     БАЗА
+     ========================================================= */
+
+  .ck-editor {
+    @apply border border-base-300 rounded-box mt-4 bg-base-100;
+  }
+
+  .ck-sticky-panel__content{
+    border: 0 !important;
+  }
+  
+  .ck.ck-color-selector .ck-color-grids-fragment .ck-button.ck-color-selector__color-picker:hover{
+    border-bottom: 1px solid var(--ck-color-base-border)
+  }
+
+  .ck-editor__editable {
+    @apply min-h-[180px]
+           bg-base-100
+           text-base-content
+           p-5
+           leading-relaxed
+           outline-none
+           mt-4;
+  }
+
+  .ck-balloon-panel.ck-balloon-panel_visible.ck-powered-by-balloon, .ck-powered-by{
+    @apply hidden border-0;
+  }
+
+  /* .ck.ck-editor__editable.ck-focused{
+    box-shadow: none !important;
+  } */
+
+  .ck-editor__editable:focus {
+    @apply ring-2 ring-primary ring-offset-base-100;
+  }
+
+  .ck-toolbar {
+    @apply bg-base-200 border-b border-base-300;
+  }
+
+  .ck-toolbar button {
+    @apply text-base-content;
+  }
+  .ck.ck-toolbar {
+        background: var(--fallback-b2, oklch(var(--b2)));
+        border-color: var(--fallback-b3, oklch(var(--b3)));
+    }
+
+    .ck.ck-toolbar .ck-button {
+        color: var(--fallback-bc, oklch(var(--bc)));
+    }
+
+    .ck.ck-toolbar .ck-button:hover {
+        background: var(--fallback-b3, oklch(var(--b3)));
+    }
+
+    .ck.ck-toolbar .ck-button.ck-on {
+        background: var(--fallback-p, oklch(var(--p)));
+        color: var(--fallback-pc, oklch(var(--pc)));
+    }
+
+
+  /* =========================================================
+     ОБЩИЙ КОНТЕНТ (редактор + пост)
+     ========================================================= */
+
+  .ck-content,
+  .post-content {
+    @apply text-base-content leading-relaxed break-words;
+  }
+
+  /* =========================================================
+     ЗАГОЛОВКИ
+     ========================================================= */
+
+  .ck-content h1,
+  .post-content h1 {
+    @apply text-3xl font-bold my-4;
+  }
+
+  .ck-content h2,
+  .post-content h2 {
+    @apply text-2xl font-bold my-3;
+  }
+
+  .ck-content h3,
+  .post-content h3 {
+    @apply text-xl font-semibold my-2;
+  }
+
+  /* =========================================================
+     ТЕКСТ
+     ========================================================= */
+
+  .ck-content p,
+  .post-content p {
+    @apply my-3;
+  }
+
+  /* =========================================================
+     СПИСКИ
+     ========================================================= */
+
+  .ck-content ul,
+  .post-content ul {
+    @apply list-disc pl-6 my-3;
+  }
+
+  .ck-content ol,
+  .post-content ol {
+    @apply list-decimal pl-6 my-3;
+  }
+
+  .ck-content li,
+  .post-content li {
+    @apply my-1;
+  }
+
+  /* todo-list (CKEditor) */
+  .ck-content ul.todo-list {
+    @apply list-none pl-0;
+  }
+
+  .ck-content ul.todo-list li {
+    @apply flex items-start gap-2;
+  }
+
+  /* =========================================================
+     ССЫЛКИ
+     ========================================================= */
+
+  .ck-content a,
+  .post-content a {
+    @apply link link-primary;
+  }
+
+  /* =========================================================
+     ЦИТАТЫ
+     ========================================================= */
+
+  .ck-content blockquote,
+  .post-content blockquote {
+    @apply border-l-4
+           border-primary
+           bg-base-200
+           p-3
+           my-4
+           italic
+           rounded-r-box;
+  }
+
+  /* =========================================================
+     КОД
+     ========================================================= */
+
+  .ck-content code,
+  .post-content code {
+    @apply bg-base-200 px-1 py-0.5 rounded font-mono text-sm;
+  }
+
+  .ck-content pre,
+  .post-content pre {
+    @apply bg-base-300 text-base-content
+           p-3
+           rounded-box
+           overflow-x-auto
+           my-4;
+  }
+
+  .ck-content pre code,
+  .post-content pre code {
+    @apply bg-transparent p-0;
+  }
+
+  /* =========================================================
+     ИЗОБРАЖЕНИЯ
+     ========================================================= */
+
+  .ck-content img,
+  .post-content img {
+    @apply max-w-full h-auto rounded-box my-3;
+  }
+
+  .ck-content figure,
+  .post-content figure {
+    @apply my-4;
+  }
+
+  .ck-content figcaption,
+  .post-content figcaption {
+    @apply text-sm text-base-content/60 text-center mt-2;
+  }
+
+  /* выравнивание изображений */
+  .image-style-align-left {
+    @apply float-left mr-4;
+  }
+
+  .image-style-align-right {
+    @apply float-right ml-4;
+  }
+
+  .image-style-align-center {
+    @apply mx-auto block;
+  }
+
+  /* =========================================================
+     ТАБЛИЦЫ
+     ========================================================= */
+
+  .ck-content table,
+  .post-content table {
+    @apply w-full border-collapse my-4;
+  }
+
+  .ck-content th,
+  .ck-content td,
+  .post-content th,
+  .post-content td {
+    @apply border border-base-300 p-2;
+  }
+
+  .ck-content th,
+  .post-content th {
+    @apply bg-base-200 font-semibold;
+  }
+
+  /* =========================================================
+     HR
+     ========================================================= */
+
+  .ck-content hr,
+  .post-content hr {
+    @apply border-t border-base-300 my-6;
+  }
+
+  /* =========================================================
+     ВСТРАИВАЕМЫЙ КОНТЕНТ
+     ========================================================= */
+
+  .ck-content iframe,
+  .post-content iframe {
+    @apply max-w-full rounded-box my-4;
+  }
+
+}

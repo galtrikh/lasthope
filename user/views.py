@@ -9,6 +9,7 @@ from django.contrib.auth.models import Permission
 def register(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
+        print(form.errors)
         if form.is_valid():
             user = form.save()
             user.user_permissions.add(
@@ -45,12 +46,12 @@ def sign_in(request):
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(request=request, username=username, password=password)
-            if user is not None:
-                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                return redirect('main')
+            # username = form.cleaned_data.get('username')
+            # password = form.cleaned_data.get('password')
+            # user = authenticate(request=request, username=username, password=password)
+            # if user is not None:
+            login(request, form.get_user(), backend='django.contrib.auth.backends.ModelBackend')
+            return redirect('main')
     else:
         form = LoginForm()
     return render(request, 'user/login.html', {'form':form})

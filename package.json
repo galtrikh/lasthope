@@ -4,16 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    	"test": "echo \"Error: no test specified\" && exit 1",
-	"build-css": "tailwindcss -i ./src/input.css -o ./forum/staticfields/css/tailwind.css",
-  	"watch-css": "tailwindcss -i ./src/input.css -o ./forum/staticfields/css/tailwind.css --watch"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-css": "tailwindcss -i ./src/input.css -o ./forum/staticfields/css/tailwind.css",
+    "watch-css": "tailwindcss -i ./src/input.css -o ./forum/staticfields/css/tailwind.css --watch"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "autoprefixer": "^10.4.23",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.18"
+  "dependencies": {
+    "@tiptap/core": "^3.16.0",
+    "@tiptap/starter-kit": "^3.16.0"
   }
 }

@@ -5,9 +5,72 @@
 
 {% block layout_content %}
     <div id="app" class="flex flex-col min-h-screen">
-        <header class="flex md:flex-nowrap justify-between items-center tb-block py-1 mt-4 text-white z-11">         
+        <header class="navbar shadow-sm bg-base-100">
+            <div class="navbar-start">
+                <div class="dropdown">
+                    <button tabindex="0" class="btn btn-ghost btn-circle"><i class="fa-solid fa-bars text-xl"></i></button>
+                    <ul tabindex="-1" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow">
+                        <li><a href="{% url 'forum' %}">Форум</a></li>
+                        <li><a href="{% url 'news' %}">Новости</a></li>
+                        <li><a href="{% url 'help' %}">Помощь</a></li>
+                        {% if user.is_authenticated %}
+                            <li><a href="{% url 'user' request.user.username %}">Профиль</a></li>
+                        {%endif%}
+                        {% if user.is_staff %}
+                            <li><a href="{% url 'admin:index' %}">Админка</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            <div class="navbar-center">
+                <div class="tooltip tooltip-bottom">
+                    <div class="tooltip-content">
+                        <div class="animate-bounce text-2xl font-black -rotate-6">
+                            <span class="text-rotate duration-1500">
+                                <span class="justify-items-center">
+                                    <span>Тюрьма!</span>
+                                    <span>Играй!</span>
+                                    <span>Донать!</span>
+                                    <span>CS:S!</span>
+                                    <span>Лучший!</span>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="indicator">
+                        <span class="indicator-item badge badge-sm badge-primary rotate-12">BETA</span>
+                        <a href="{% url 'main' %}" class="btn btn-ghost text-xl">LastHope <span class="text-sm text-secondary">v34</span></a>
+                    </div>
+                </div>
+            </div>
+            <div class="navbar-end space-x-4 pr-5">
+                <div class="dropdown dropdown-end">
+                    <div class="tooltip tooltip-bottom" data-tip="Поиск">
+                        <button tabindex="0" class="btn btn-ghost btn-circle"><i class="fa-solid fa-magnifying-glass text-lg"></i></button>
+                    </div>
+                    <div tabindex="-1" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow">
+                        <input type="text" placeholder="Поиск..." name="search" class="input"/>
+                    </div>
+                </div>
+                {% if user.is_authenticated %}
+                    <div class="dropdown dropdown-end">
+                        <div class="tooltip tooltip-bottom" data-tip="Уведомления">
+                            <button tabindex="0" class="btn btn-ghost btn-circle"><i class="fa-solid fa-bell text-lg"></i></button>
+                        </div>
+                        <ul tabindex="-1" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-3 shadow">
+                            <li>Уведомлений пока нет</li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <div class="tooltip tooltip-bottom" data-tip="Вход">
+                        <a href="{% url 'login' %}" class="btn btn-ghost btn-circle"><i class="fa-solid fa-right-to-bracket text-lg"></i></a>
+                    </div>
+                {% endif %}
+            </div>
+        </header>
+        {% comment %} <header class="flex md:flex-nowrap justify-between items-center tb-block py-1 mt-4 text-white z-11">         
             <div class="p-3 px-5 text-xl font-bold select-none md:text-nowrap w-fit"><i class="fa-solid fa-pepper-hot mr-2 text-neutral-500"></i>Последняя надежда V34</div>
-            <button id="burger_btn" class="block p-2 px-3 rounded-xl hover:bg-sky-500 md:hidden"><i class="fa-solid fa-bars text-2xl"></i></button>
+            <button id="burger_btn" class="block p-2 px-3 rounded-xl hover:bg-sky-500 md:hidden"></button>
             <div id="burger_menu" class="opacity-0 top-0 left-0 z-50 mt-20 transform translate-y-full fixed pointer-events-none transition-all duration-300 bg-sky-900 md:bg-transparent rounded-xl w-full text-2xl text-center md:opacity-100 md:mt-0 flex flex-col-reverse md:flex-row md:items-center md:justify-between md:pointer-events-auto md:text-xl md:w-full md:top-auto md:left-auto md:transform-none md:relative md:translate-0">
                 <ul class="w-full md:w-fit flex-wrap md:flex-nowrap md:flex flex-col md:flex-row justify-center md:justify-between items-center md:space-x-4 space-y-4 md:space-y-0">
                     <li><a class="{% if request.path == '/' %} btn-header__active after:w-full {% endif %} btn-header relative inline-block
@@ -81,18 +144,43 @@
                         mt-4
                         md:mt-0 
                 hover:bg-sky-500" type="submit">Выйти</button>
-                    </form> {% endcomment %}
+                    </form> 
                 {% endif %}
             </div>
-        </header>
-        <main class="text-white" style="flex: 1 1 auto;">
+        </header> {% endcomment %}
+        <main class="flex-auto">
             
             {% block content %}
                 
             {% endblock %}
     
         </main>
-        <footer class="
+        <footer class="footer footer-horizontal footer-center bg-base-200 text-base-content rounded p-10">
+            <nav class="grid grid-flow-col gap-4">
+                <a class="link link-hover">О нас</a>
+                <a class="link link-hover">Контакты</a>
+                <a class="link link-hover">Работа</a>
+            </nav>
+            <nav>
+                <div class="grid grid-flow-col gap-4">
+                <div class="tooltip tooltip-bottom" data-tip="46.174.49.39:27228">
+                    <a class="btn btn-ghost btn-circle">
+                        <i class="fa-solid fa-i"></i>
+                        <i class="fa-solid fa-p"></i>
+                    </a>
+                </div>
+                <div class="tooltip tooltip-bottom" data-tip="@lasthopecssv34">
+                    <a href="https://t.me/lasthopecssv34" class="btn btn-ghost btn-circle">
+                        <i class="fa-brands fa-telegram text-xl"></i>
+                    </a>
+                </div>
+                </div>
+            </nav>
+            <aside>
+                <p>Copyright © {% now 'Y' %} - Все права защищены</p>
+            </aside>
+        </footer>
+        {% comment %} <footer class="
         bg-transparent
         text-white
         border-t
@@ -147,7 +235,7 @@
                     <div class="text-neutral-500">
                         Telegram: <a class="text-sky-600 hover:underline cursor-pointer">@lasthopecssv34</a>
                     </div>
-                </div>
+                </div> {% endcomment %}
                 {% comment %} <ul class="*:mt-3.5 md:*:mt-0">
                     {% for obj in footer_info %}
                         <li>
@@ -159,13 +247,13 @@
                         </li>
                     {% endfor %}
                 </ul> {% endcomment %}
-            </div>
+            {% comment %} </div> {% endcomment %}
             {% comment %} <div class="
             w-full
             text-center
             mt-5">
                 <span>"ПОСЛЕДНЯЯ НАДЕЖДА V34" © 2026</span>
             </div> {% endcomment %}
-        </footer>
+        {% comment %} </footer> {% endcomment %}
     </div>
 {% endblock %}

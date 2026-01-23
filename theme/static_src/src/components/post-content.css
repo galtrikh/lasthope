@@ -1,0 +1,301 @@
+@layer components {
+
+  /* =========================================================
+     БАЗА
+     ========================================================= */
+
+  .post-content {
+    @apply text-base-content leading-relaxed break-words;
+  }
+
+  .post-content * {
+    @apply max-w-full;
+  }
+
+  /* =========================================================
+     ЗАГОЛОВКИ
+     ========================================================= */
+
+  .post-content h1 {
+    @apply text-3xl md:text-4xl font-bold mt-6 mb-4;
+  }
+
+  .post-content h2 {
+    @apply text-2xl md:text-3xl font-bold mt-6 mb-3;
+  }
+
+  .post-content h3 {
+    @apply text-xl md:text-2xl font-semibold mt-5 mb-2;
+  }
+
+  .post-content h4 {
+    @apply text-lg font-semibold mt-4 mb-2;
+  }
+
+  .post-content h5 {
+    @apply text-base font-semibold mt-3 mb-1;
+  }
+
+  .post-content h6 {
+    @apply text-sm font-semibold opacity-80;
+  }
+
+  /* =========================================================
+     ТЕКСТ
+     ========================================================= */
+
+  .post-content p {
+    @apply my-4;
+  }
+
+  .post-content strong {
+    @apply font-semibold;
+  }
+
+  .post-content em {
+    @apply italic;
+  }
+
+  .post-content small {
+    @apply text-sm opacity-75;
+  }
+
+  /* =========================================================
+     ССЫЛКИ
+     ========================================================= */
+
+  .post-content a {
+    @apply link link-primary underline-offset-2;
+  }
+
+  .post-content a:hover {
+    @apply opacity-80;
+  }
+
+  /* =========================================================
+     СПИСКИ
+     ========================================================= */
+
+  .post-content ul {
+    @apply list-disc pl-6 my-4;
+  }
+
+  .post-content ol {
+    @apply list-decimal pl-6 my-4;
+  }
+
+  .post-content li {
+    @apply my-2;
+  }
+
+  /* todo list (CKEditor) */
+  .post-content ul.todo-list {
+    @apply list-none pl-0;
+  }
+
+  .post-content ul.todo-list li {
+    @apply flex items-start gap-2;
+  }
+
+  .post-content ul.todo-list input {
+    @apply mt-1;
+  }
+
+  /* =========================================================
+     ЦИТАТЫ
+     ========================================================= */
+
+  .post-content blockquote {
+    @apply border-l-4 border-primary
+           bg-base-200
+           px-4 py-3 my-4
+           rounded-r-box italic;
+  }
+
+  /* =========================================================
+     КОД
+     ========================================================= */
+
+  .post-content code {
+    @apply font-mono text-sm
+           bg-base-200
+           px-1 py-0.5
+           rounded;
+  }
+
+  .post-content pre {
+    @apply bg-base-300
+           text-base-content
+           p-4 my-4
+           rounded-box
+           overflow-x-auto;
+  }
+
+  .post-content pre code {
+    @apply bg-transparent p-0;
+  }
+
+  /* =========================================================
+     ИЗОБРАЖЕНИЯ
+     ========================================================= */
+
+  .post-content img {
+    @apply max-w-full h-auto rounded-box my-4;
+  }
+
+  .post-content figure {
+    @apply my-6;
+  }
+
+  .post-content figcaption {
+    @apply text-center text-sm opacity-70 mt-2;
+  }
+
+  /* CKEditor image alignment */
+  .post-content .image-style-align-left {
+    @apply float-left mr-4 mb-2;
+  }
+
+  .post-content .image-style-align-right {
+    @apply float-right ml-4 mb-2;
+  }
+
+  .post-content .image-style-align-center {
+    @apply mx-auto block;
+  }
+
+  /* =========================================================
+     ТАБЛИЦЫ
+     ========================================================= */
+
+  .post-content table {
+    @apply w-full border-collapse my-6;
+  }
+
+  .post-content th,
+  .post-content td {
+    @apply border border-base-300 p-2;
+  }
+
+  .post-content th {
+    @apply bg-base-200 font-semibold;
+  }
+
+  /* =========================================================
+     ГОРИЗОНТАЛЬНАЯ ЛИНИЯ
+     ========================================================= */
+
+  .post-content hr {
+    @apply my-6 border-t border-base-300;
+  }
+
+  /* =========================================================
+     ВСТРАИВАЕМЫЙ КОНТЕНТ
+     ========================================================= */
+
+  .post-content iframe,
+  .post-content video {
+    @apply max-w-full rounded-box my-4;
+  }
+
+  /* =========================================================
+     ВЫРАВНИВАНИЕ (если редактор добавляет классы)
+     ========================================================= */
+
+  .post-content .text-left    { @apply text-left; }
+  .post-content .text-center  { @apply text-center; }
+  .post-content .text-right   { @apply text-right; }
+  .post-content .text-justify { @apply text-justify; }
+
+  /* =========================================================
+     CLEARFIX
+     ========================================================= */
+
+  .post-content::after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+
+  /* =========================================================
+    COMPACT MODE (для комментариев)
+    ========================================================= */
+
+   .post-content--compact {
+    @apply text-sm leading-snug;
+  }
+
+  /* Заголовки — почти выключаем */
+  .post-content--compact h1 {
+    @apply text-lg mt-3 mb-2;
+  }
+
+  .post-content--compact h2 {
+    @apply text-base font-semibold mt-3 mb-2;
+  }
+
+  .post-content--compact h3,
+  .post-content--compact h4,
+  .post-content--compact h5,
+  .post-content--compact h6 {
+    @apply text-sm font-semibold mt-2 mb-1;
+  }
+
+  /* Абзацы — минимум воздуха */
+  .post-content--compact p {
+    @apply my-2;
+  }
+
+  /* Списки — компактнее */
+  .post-content--compact ul,
+  .post-content--compact ol {
+    @apply pl-5 my-2;
+  }
+
+  .post-content--compact li {
+    @apply my-1;
+  }
+
+  /* Цитаты — тоньше */
+  .post-content--compact blockquote {
+    @apply px-3 py-2 my-2 border-l-2 text-sm;
+  }
+
+  /* Код */
+  .post-content--compact code {
+    @apply text-xs px-1;
+  }
+
+  .post-content--compact pre {
+    @apply p-3 my-2 text-xs;
+  }
+
+  /* Картинки — меньше отступы */
+  .post-content--compact img {
+    @apply my-2 rounded;
+  }
+
+  .post-content--compact figure {
+    @apply my-3;
+  }
+
+  .post-content--compact figcaption {
+    @apply text-xs mt-1;
+  }
+
+  /* Таблицы */
+  .post-content--compact table {
+    @apply my-3 text-sm;
+  }
+
+  .post-content--compact th,
+  .post-content--compact td {
+    @apply p-1.5;
+  }
+
+  /* Горизонтальная линия */
+  .post-content--compact hr {
+    @apply my-3;
+  }
+
+}

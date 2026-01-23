@@ -1,15 +1,26 @@
 from django.db import models
 from django.conf import settings
 from django_ckeditor_5.fields import CKEditor5Field
-
+from django.contrib.auth.models import User
+from django.urls import reverse
 # Create your models here.
 
 class ForumCategory(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name='Наименование')
     description = models.TextField(blank=True, null=True, verbose_name='Описание')
     slug = models.SlugField(unique=True, verbose_name='Вид ссылки')
+    icon = models.CharField(verbose_name='Иконка', help_text='С сайта Fontawesome', default='<i class="fa-solid fa-icons"></i>')
     visible = models.BooleanField(default=True, verbose_name='Отображается')
     
+    @property
+    def likes_count(self):
+        return self.likes.count()
+
+    def is_liked_by(self, user):
+        if not user.is_authenticated:
+            return False
+        return self.likes.filter(user=user).exists()
+
     def __str__(self):
         return self.name
     
@@ -36,6 +47,7 @@ class ForumTopic(models.Model):
         related_name='topics'
         , verbose_name='Автор'
     )
+    icon = models.CharField(verbose_name='Иконка', help_text='С сайта Fontawesome', default='fa-solid fa-icons')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создано')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Изменено')
     pinned = models.BooleanField(default=False, verbose_name='Закреплено')  # закрепление темы
@@ -43,8 +55,30 @@ class ForumTopic(models.Model):
     closed = models.BooleanField(default=False, verbose_name='Тема закрыта')
 
     @property
+    def likes_count(self):
+        return self.likes.count()
+
+    @property
+    def popularity_percent(self):
+        return round((self.likes.count() * 100) / User.objects.all().count())
+
+    @property
     def get_posts(self):
         return ForumPost.objects.filter(topic=self).order_by('id')
+
+    def get_absolute_url(self):
+        return reverse(
+            'topic',
+            kwargs={
+                'cat_slug': self.category.slug,
+                'topic_id': self.id
+            }
+        )
+
+    def is_liked_by(self, user):
+        if not user.is_authenticated:
+            return False
+        return self.likes.filter(user=user).exists()
 
     def __str__(self):
         return self.title
@@ -99,3 +133,45 @@ class ForumPost(models.Model):
         ]
         verbose_name = 'Пост'
         verbose_name_plural = 'Посты'
+
+class ForumCategoryLike(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='category_likes'
+    )
+    category = models.ForeignKey(
+        ForumCategory,
+        on_delete=models.CASCADE,
+        related_name='likes'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'category'],
+                name='unique_user_category_like'
+            )
+        ]
+
+class ForumTopicLike(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='topic_likes'
+    )
+    topic = models.ForeignKey(
+        ForumTopic,
+        on_delete=models.CASCADE,
+        related_name='likes'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'topic'],
+                name='unique_user_topic_like'
+            )
+        ]

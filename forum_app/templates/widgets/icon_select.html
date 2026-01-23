@@ -1,0 +1,14 @@
+{% comment %}
+    Виджет для выбора иконки FontAwesome
+    Используем DaisyUI/Tailwind стили
+{% endcomment %}
+
+<select name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %} class="select select-bordered w-full">
+    {% for group_name, options, index in widget.optgroups %}
+        {% for option in options %}
+            <option value="{{ option.value|stringformat:'s' }}" {% if option.selected %}selected{% endif %}>
+                {{ option.label|safe }}
+            </option>
+        {% endfor %}
+    {% endfor %}
+</select>

@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'forum_app',
     'forum_filter',
     'django_ckeditor_5',
+    'unfold',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -188,6 +189,192 @@ CKEDITOR_5_CONFIGS = {
     }
 }
 
+UNFOLD = {
+    # ─────────────────────────
+    # Базовое
+    # ─────────────────────────
+    "SITE_TITLE": "LastHope Admin",
+    "SITE_HEADER": "LastHope v34",
+    "SITE_SYMBOL": "shield",
+    "ICON_SET": "lucide",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+
+    # ─────────────────────────
+    # Сайдбар
+    # ─────────────────────────
+    "SIDEBAR": {
+        "show_search": True,
+        "navigation": [
+
+            # ───── Форум ─────
+            {
+                "title": "Форум",
+                "items": [
+                    {
+                        "title": "Категории",
+                        "icon": "category",
+                        "link": "/admin/forum/forumcategory/",
+                    },
+                    {
+                        "title": "Темы",
+                        "icon": "forum",
+                        "link": "/admin/forum/forumtopic/",
+                    },
+                    {
+                        "title": "Посты",
+                        "icon": "message",
+                        "link": "/admin/forum/forumpost/",
+                    },
+                ],
+            },
+
+            # ───── Пользователи ─────
+            {
+                "title": "Пользователи",
+                "items": [
+                    {
+                        "title": "Пользователи",
+                        "icon": "people",
+                        "link": "/admin/auth/user/",
+                    },
+                    {
+                        "title": "Группы",
+                        "icon": "groups",
+                        "link": "/admin/auth/group/",
+                    },
+                    {
+                        "title": "Уведомления",
+                        "icon": "notifications",
+                        "link": "/admin/notifications/notification/",
+                    },
+                ],
+            },
+
+            # ───── Модерация ─────
+            {
+                "title": "Модерация",
+                "items": [
+                    {
+                        "title": "Автомодерация",
+                        "icon": "quick_reference_all",
+                        "link": "/admin/security/automoderation/",
+                    },
+                    {
+                        "title": "Предупреждения",
+                        "icon": "report",
+                        "link": "/admin/security/warning/",
+                    },
+                    {
+                        "title": "Чёрный список слов",
+                        "icon": "skull_list",
+                        "link": "/admin/security/blacklistedword/",
+                    },
+                ],
+            },
+
+            # ───── Голосования ─────
+            {
+                "title": "Голосования",
+                "items": [
+                    {
+                        "title": "Голосования",
+                        "icon": "how_to_vote",
+                        "link": "/admin/polls/poll/",
+                    },
+                    {
+                        "title": "Голоса",
+                        "icon": "ballot",
+                        "link": "/admin/polls/vote/",
+                    },
+                    {
+                        "title": "Опции",
+                        "icon": "list",
+                        "link": "/admin/polls/polloption/",
+                    },
+                ],
+            },
+
+            # ───── Контент ─────
+            {
+                "title": "Контент",
+                "items": [
+                    {
+                        "title": "Новости",
+                        "icon": "newspaper",
+                        "link": "/admin/news/news/",
+                    },
+                    {
+                        "title": "Баннеры",
+                        "icon": "image",
+                        "link": "/admin/site/banner/",
+                    },
+                    {
+                        "title": "Правила",
+                        "icon": "book",
+                        "link": "/admin/help/rule/",
+                    },
+                    {
+                        "title": "Помощь",
+                        "icon": "help",
+                        "link": "/admin/help/helppoint/",
+                    },
+                ],
+            },
+
+            # ───── Безопасность ─────
+            {
+                "title": "Безопасность",
+                "items": [
+                    {
+                        "title": "Логи доступа",
+                        "icon": "pending_actions",
+                        "link": "/admin/security/accesslog/",
+                    },
+                    {
+                        "title": "Ошибки доступа",
+                        "icon": "error",
+                        "link": "/admin/security/accesserror/",
+                    },
+                    {
+                        "title": "Попытки входа",
+                        "icon": "login",
+                        "link": "/admin/security/loginattempt/",
+                    },
+                    {
+                        "title": "Разрешённые IP",
+                        "icon": "check_circle",
+                        "link": "/admin/security/allowedip/",
+                    },
+                    {
+                        "title": "DEV IP",
+                        "icon": "terminal",
+                        "link": "/admin/security/developerip/",
+                    },
+                ],
+            },
+
+            # ───── Система ─────
+            {
+                "title": "Система",
+                "items": [
+                    {
+                        "title": "Настройки сайта",
+                        "icon": "settings",
+                        "link": "/admin/system/sitesettings/",
+                    },
+                    {
+                        "title": "Футер",
+                        "icon": "mobile_layout",
+                        "link": "/admin/system/footerinfo/",
+                    },
+                ],
+            },
+        ],
+    },
+}
+
+
 # if DEBUG:
 #     MIDDLEWARE += ["django_browser_reload.middleware.BrowserReloadMiddleware",]
 
@@ -276,10 +463,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'static'
-# STATICFILES_DIRS = [
-#     BASE_DIR / "static",
-# ]
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 
 # Default primary key field type

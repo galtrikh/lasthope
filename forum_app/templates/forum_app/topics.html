@@ -19,7 +19,212 @@
 <!--===========CONTENT=============-->
 
 {% block data %}
-    <div>
+<ul class="list bg-base-100 rounded-box shadow-sm">
+        <li class="p-4 pb-2 text-sm opacity-60 tracking-wide breadcrumbs">
+            <ul>
+                <li><a href="{% url 'forum' %}">Форум</a></li>
+                <li>{{category.name}}</li>
+            </ul>
+        </li>
+{% if topics|length > 0 %}
+   
+        {% for topic in topics %}
+            <li class="list-row hover:bg-base-300 transition-colors duration-300">
+                <div class="text-4xl"><i class="{{topic.icon}}"></i></div>
+                <a href="{% url 'topic' cat_slug=category.slug topic_id=topic.id%}">
+                    {% comment %} <div>{{topic.title}}</div> {% endcomment %}
+                    <div class="text-xs uppercase font-semibold opacity-80">{{topic.title}}</div>
+                </a>
+                <label class="swap btn btn-square btn-ghost">
+                    <input type="checkbox"
+                    data-category-slug="{{category.slug}}"
+                    data-topic-id="{{topic.id}}"
+                    {% if topic.is_liked %} checked {% endif %}/>
+                    <i class="swap-off fa-regular fa-heart"></i>
+                    <i class="swap-on fa-solid fa-heart"></i>
+                </label>
+                <div class="dropdown dropdown-end" x-data="{open:false}">
+                    <button class="btn btn-square btn-ghost" @click="open = !open">
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </button>
+                    <ul class="menu menu-sm dropdown-content bg-base-200 p-4 rounded-box w-52" x-cloak x-show="open" x-transition @click.outside="open=false">
+                        {% if topic.flag.can_close_topic %} 
+                            {% if not topic.closed %}
+                                <li>
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'close' %}">
+                                        {% csrf_token %}
+                                        <button class="" type="submit">Закрыть тему</button>
+                                    </form>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'unclose' %}">
+                                        {% csrf_token %}
+                                        <button class="" type="submit">Открыть тему</button>
+                                    </form>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                        {% if topic.flag.can_hide_topic %}
+                            {% if topic.visible %}
+                                <li>
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'hide' %}">
+                                        {% csrf_token %}
+                                        <button class="" type="submit">Скрыть</button>
+                                    </form>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'show' %}">
+                                        {% csrf_token %}
+                                        <button class="" type="submit">Показать</button>
+                                    </form>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                        {% if topic.flag.can_pin_topic %}
+                            {% if not topic.pinned %}
+                                <li>
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'pin' %}">
+                                        {% csrf_token %}
+                                        <button class="" type="submit">Закрепить</button>
+                                    </form>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'unpin' %}">
+                                        {% csrf_token %}
+                                        <button class="" type="submit">Открепить</button>
+                                    </form>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                        {% if topic.flag.can_delete_topic %}
+                            <li><button class="" onclick="delete_topic_modal_{{ topic.id }}.showModal()">Удалить</button></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </li>
+            
+            <dialog id="delete_topic_modal_{{ topic.id }}" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg text-error">
+            Удалить тему навсегда?
+        </h3>
+
+        <p class="py-4 text-sm opacity-80">
+            Это действие нельзя отменить.
+            Пост будет удалён навсегда.
+        </p>
+
+        <div class="modal-action">
+            <!-- Отмена -->
+            <form method="dialog">
+                <button class="btn btn-ghost">
+                    Отмена
+                </button>
+            </form>
+
+            <!-- Подтверждение -->
+            <form
+                method="POST"
+                action="{% url 'topic_edit' category.slug topic.id 'delete' %}">
+                {% csrf_token %}
+                <button class="btn btn-error" onclick="create_topic_modal.showModal()">
+                    Да, удалить
+                </button>
+            </form>
+        </div>
+    </div>
+</dialog>
+        {% endfor %}
+    
+{% else %}
+    <li class="list-row">Тут пока нет тем...</li>
+{% endif %}
+{% if perms.forum_app.can_create_topic %}
+        <!-- Кнопка открытия модалки -->
+        <li class="list-row">
+            <!-- Кнопка открытия модалки -->
+        
+            <button type="button"
+                    class="btn btn-primary"
+                    onclick="create_topic_modal.showModal()">
+                Создать тему
+            </button>
+
+            <dialog id="create_topic_modal" class="modal">
+                <div class="modal-box">
+                    <h3 class="font-bold text-lg">
+                        Создание темы
+                    </h3>
+                    <form
+                            method="POST">
+                            {% csrf_token %}
+                        <label class="label">Название</label>
+                        <label class="input w-full">
+                            <i class="fa-solid fa-file-signature opacity-50"></i>
+                            {{form.title}}
+                        </label>
+                        <fieldset class="fieldset bg-base-100 border-base-300 rounded-box w-64 border p-4">
+                            <legend class="fieldset-legend">Настройки</legend>
+                            <label class="label">
+                                {{form.visible}}
+                                Видимая
+                            </label>
+                            <label class="label">
+                                 {{form.pinned}}
+                                Закрепить
+                            </label>
+                            <label class="label">
+                                {{form.closed}}
+                                Тема закрыта
+                            </label>
+                        </fieldset>
+                       <label class="label">
+                            Иконка
+                       </label>
+                       <div class="grid grid-cols-6 gap-2 mt-4">
+                            {% for value, label in form.fields.icon.choices %}
+                                <label class="join-item btn">
+                                    <input
+                                        type="radio"
+                                        name="{{ form.icon.name }}"
+                                        value="{{ value }}"
+                                        class="hidden peer"
+                                        {% if form.icon.value == value %}checked{% endif %}
+                                    >
+                                    <i class="{{ value }} text-xs
+                                    peer-checked:text-primary"></i>
+                                </label>
+                            {% endfor %}
+                        </div>
+
+
+
+                        <div class="modal-action">
+                            <!-- Отмена -->
+                            
+                                <label class="btn btn-ghost" onclick="create_topic_modal.close()">
+                                    Отмена
+                                </label>
+                        
+
+                            <!-- Подтверждение -->
+                            
+                                <button class="btn btn-primary" type="submit">
+                                    Сохранить
+                                </button>
+                            
+                        </div>
+                    </form>
+                </div>
+            </dialog>
+        </li>
+
+    {% endif %}
+</ul>
+    {% comment %} <div>
         <span class="w-full h-full text-white font-bold text-2xl p-4">{{category.name}}</span>
         <div class="flex flex-col md:flex-row items-center justify-between p-5" x-data="{open:false, btn:'Создать тему'}">
             <a href="{% url 'forum' %}" class="btn-secondary">Назад</a>
@@ -113,5 +318,39 @@
             {% endif %}
         </div>
         {% endif %}
-    </div>
+    </div> {% endcomment %}
+    <script>
+document.addEventListener('change', async (e) => {
+  const btn = e.target.closest('input[data-category-slug]')
+  if (!btn) return
+
+  const categorySlug = btn.dataset.categorySlug
+  const topicId = btn.dataset.topicId
+
+  const response = await fetch(
+    `/forum/category/${categorySlug}/${topicId}/like/`,
+    {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Accept': 'application/json'
+      }
+    }
+  )
+
+  if (!response.ok) return
+
+  const data = await response.json()
+
+ 
+  btn.checked = data.liked
+})
+
+function getCookie(name) {
+  return document.cookie
+    .split('; ')
+    .find(row => row.startsWith(name + '='))
+    ?.split('=')[1]
+}
+</script>
 {% endblock %}

@@ -7,6 +7,7 @@ from django.contrib.auth.admin import GroupAdmin
 from .models import GroupProfile
 from django.contrib import messages
 from .forms import NotificationTextForm
+from django.contrib.admin.sites import NotRegistered
 from django.shortcuts import render
 
 from notification.services import notify_bulk
@@ -56,24 +57,34 @@ class ProfileInline(admin.StackedInline):
     model = Profile
     can_delete = False
 
+
 class CustomUserAdmin(UserAdmin):
     inlines = (ProfileInline,)
     actions = [send_notification]
 
-admin.site.unregister(User)
+
+try:
+    admin.site.unregister(User)
+except NotRegistered:
+    pass
+
 admin.site.register(User, CustomUserAdmin)
 
 class GroupProfileInline(admin.StackedInline):
     model = GroupProfile
     can_delete = False
     extra = 0
-    max_num=1
+    max_num = 1
 
 
 class GroupAdmin(admin.ModelAdmin):
     inlines = [GroupProfileInline]
 
 
-admin.site.unregister(Group)
+try:
+    admin.site.unregister(Group)
+except NotRegistered:
+    pass
+
 admin.site.register(Group, GroupAdmin)
 

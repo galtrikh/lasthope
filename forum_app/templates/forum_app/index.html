@@ -19,19 +19,73 @@
 <!--===========CONTENT=============-->
 
 {% block data %}
-
+<ul class="list bg-base-100 rounded-box shadow-sm">
+        <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">Основные категории форума <span class="inline-block relative rotate-52 select-none">=)</span></li>
 {% if categories|length > 0 %}
-    {% for category in categories %}
-        <div class="bg-sky-300 hover:bg-sky-500 cursor-pointer px-3 w-full">
-            <a href="{% url 'category' cat_slug=category.slug %}" class="cursor-pointer px-3 w-full">
-                <div class="font-bold">{{category.name}}</div>
-                <div>{{category.description}}</div>
-            </a>
-        </div>
-    {% endfor %}
+   
+        {% for category in categories %}
+            <li class="list-row hover:bg-base-300 transition-colors duration-300">
+                <div class="text-4xl">{{category.icon|safe}}</div>
+                <a href="{% url 'category' category.slug %}">
+                    <div>{{category.name}}</div>
+                    <div class="text-xs uppercase font-semibold opacity-60">{{category.description}}</div>
+                </a>
+                <label class="swap btn btn-square btn-ghost">
+                    <input type="checkbox"
+                        data-category-slug="{{ category.slug }}"
+                        {% if category.is_liked %}checked{% endif %}/>
+                    <i class="swap-off fa-regular fa-heart"></i>
+                    <i class="swap-on fa-solid fa-heart"></i>
+                </label>
+                <div class="dropdown dropdown-end" x-data="{open:false}">
+                    <button class="btn btn-square btn-ghost" @click="open = !open">
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </button>
+                    <ul class="menu menu-sm dropdown-content bg-base-100 p-4 rounded-box w-52" x-cloak x-show="open" x-transition @click.outside="open=false">
+                        <li><a>Скрыть</a></li>
+                        <li><a>Закрепить</a></li>
+                        <li><a>Удалить</a></li>
+                    </ul>
+                </div>
+            </li>
+        {% endfor %}
+    
 {% else %}
-    Форум пуст
+    <li class="list-row">Форум пуст</li>
 {% endif %}
+</ul>
+<script>
+document.addEventListener('change', async (e) => {
+  const btn = e.target.closest('input[data-category-slug]')
+  if (!btn) return
 
+  const categorySlug = btn.dataset.categorySlug
+
+  const response = await fetch(
+    `/forum/category/${categorySlug}/like/`,
+    {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Accept': 'application/json'
+      }
+    }
+  )
+
+  if (!response.ok) return
+
+  const data = await response.json()
+
+ 
+  btn.checked = data.liked
+})
+
+function getCookie(name) {
+  return document.cookie
+    .split('; ')
+    .find(row => row.startsWith(name + '='))
+    ?.split('=')[1]
+}
+</script>
 {% endblock %}
     

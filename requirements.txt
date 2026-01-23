@@ -9,6 +9,8 @@ markdown
 djangorestframework
 asgiref
 django-ckeditor-5
+# django-tiptap
+django-unfold
 tinycss2
 beautifulsoup4
 psycopg2-binary

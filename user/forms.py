@@ -14,21 +14,22 @@ class SignUpForm(UserCreationForm):
     username = forms.CharField(
         widget=forms.TextInput(attrs={
             'id': 'name',
-            'class': 'bg-blue-50 p-2 px-4 rounded-full border-2 border-sky-900 text-black w-full',
+            'class': '',
+            'placeholder': 'Логин',
             'autofocus': 'autofocus',
         })
     )
 
     password1 = forms.CharField(
         widget=forms.PasswordInput(attrs={
-            'class': 'bg-blue-50 p-2 px-4 rounded-full border-2 border-sky-900 text-black w-full',
+            'class': '',
             'placeholder': 'От 8 символов'
         })
     )
 
     password2 = forms.CharField(
         widget=forms.PasswordInput(attrs={
-            'class': 'bg-blue-50 p-2 px-4 rounded-full border-2 border-sky-900 text-black w-full',
+            'class': '',
             'placeholder': 'Проверь раскладку клавиатуры'
         })
     )
@@ -40,12 +41,13 @@ class SignUpForm(UserCreationForm):
 class LoginForm(AuthenticationForm):
     username = forms.CharField(widget=forms.TextInput(attrs={
         'id': 'username',
-        'class': 'bg-blue-50 p-2 px-4 rounded-full border-2 border-sky-900 text-black w-full',  
+        'class': '',
+        'placeholder': 'Логин',  
         'autofocus': 'autofocus',
     }))
     password = forms.CharField(widget=forms.PasswordInput(attrs={
         'id': 'password',
-        'class': 'bg-blue-50 p-2 px-4 rounded-full border-2 border-sky-900 text-black w-full',
+        'class': '',
         'placeholder': 'Проверь раскладку клавиатуры'
     }))
 

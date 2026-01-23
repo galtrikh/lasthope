@@ -25,7 +25,350 @@
 <!--===========CONTENT=============-->
 
 {% block data %}
-    <div class="tb-block flex-center-between">
+<ul class="list">
+<li class="not-lg:flex not-lg:flex-col-reverse list-row">
+    <div class="not-lg:w-full stats bg-base-300 shadow">
+        <div class="stat">
+            <div class="stat-title">Популярность темы</div>
+            <div class="stat-value flex flex-col items-center p-4">
+                <div class="radial-progress text-primary" style="--value:{{topic.popularity_percent}}; --size:8rem; --thickness:0.5em" aria-valuenow="{{topic.popularity_percent}}" role="progressbar">{{topic.popularity_percent}}%</div>
+                <span>{{topic.likes_count}}<i class="fa-solid fa-heart"></i></span>
+            </div>
+            {% comment %} <div class="stat-desc">21% more than last month</div> {% endcomment %}
+        </div>
+    </div>
+    <div>
+        <ul class="list bg-base-300 rounded-box shadow hover:bg-base-200 transition-colors duration-300">
+            <li class="list-row">
+                <div class="text-4xl">
+                    {{category.icon|safe}}
+                </div>
+                <a href="{% url 'category' category.slug %}">
+                    <div class="text-neutral-content text-2xl font-semibold">
+                        {{category.name}} 
+                        {% if not category.visible %}
+                        <span class="text-warning text-sm">[Скрыто]</span>
+                        {% endif %}
+                    </div>
+                    <div>{{category.description}}</div>
+                </a>
+            </li>
+            <li class="list-row pl-10 bg-base-100">
+                <div class="text-4xl">
+                    <i class="{{topic.icon}}"></i>
+                </div>
+                <div>
+                    <div class="text-neutral-content text-2xl font-semibold">{{topic.title}}</div>
+                    <div>
+                        {% if not topic.visible %}
+                        <span class="text-warning text-sm">[Скрыто]</span>
+                        {% endif %}
+                        {% if topic.pinned %}
+                        <span class="text-info text-sm">[Закреплено]</span>
+                        {% endif %}
+                        {% if topic.closed %}
+                        <span class="text-error text-sm">[Тема закрыта]</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="dropdown dropdown-end" x-data="{open:false}">
+                    <button class="btn btn-square btn-ghost" @click="open = !open">
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </button>
+                    <ul class="menu menu-sm dropdown-content bg-base-300 p-4 rounded-box w-52" x-cloak x-show="open" x-transition @click.outside="open=false">
+                        <li><a>Скрыть</a></li>
+                        <li><a>Закрепить</a></li>
+                        <li><a>Удалить</a></li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <div>
+        <ul class="list bg-base-300 rounded-box shadow">
+            <li class="list-row">
+                <div class="text-neutral-content text-2xl font-semibold">Автор темы</div>
+            </li>
+            <li class="list-row">
+                <div class="avatar avatar-online">
+                    <img src="{{topic.author.profile.avatar.url}}" class="aspect-square size-24 rounded-full"/>
+                </div>
+                <div>
+                    <a href="{% url 'user' topic.author.username %}" class="text-xl">
+                        <div class="tooltip" data-tip="Профиль">
+                        <div>{{topic.author.profile.displayname}}</div>
+                        {% if topic.author.groups.all|length > 0 %}
+                            <div class="text-xs uppercase font-semibold opacity-80">{{topic.author.groups.first}}</div>
+                        {% endif %}
+                        </div>
+                    </a>
+                </div>
+            </li>
+        </ul>
+    </div>
+</li>
+</ul>
+<ul class="list bg-base-100 rounded-box shadow-sm">
+        <li class="p-4 pb-2 text-sm opacity-60 breadcrumbs">
+            <ul>
+                <li><a href="{% url 'forum' %}">Форум</a></li>
+                <li><a href="{% url 'category' category.slug %}">{{category.name}}</a></li>
+                <li>{{topic.title}}</li>
+            </ul>
+        </li>
+{% if posts|length > 0 %}
+        {% for post in posts %}
+            <li id="post-id-{{post.obj.id}}" class="list-row">
+                <div class="avatar {% if post.obj.author.profile.is_online %} avatar-online {% else %} avatar-offline {% endif %}"><img src="{{post.obj.author.profile.avatar.url}}" class="aspect-square size-12 bg-base-100 rounded-full"/></div>
+                <div>
+                    <a href="{% url 'user' post.obj.author.username %}">
+                        <div class="tooltip" data-tip="Профиль">
+                            <div>{{post.obj.author.profile.displayname}}</div>
+                        
+                        {% if post.obj.author.groups.all|length > 0 %}
+                        <div class="text-xs uppercase font-semibold opacity-80">{{post.obj.author.groups.first}}</div>
+                        {% endif %}
+                        </div>
+                    </a>
+                    {% if post.obj.pinned or not post.obj.visible or post.obj.deleted %}
+                            <br/>
+                            <span class="text-xs">
+                                {% if post.obj.pinned %}
+                                    <span class="text-info">[Закреплен]</span>
+                                {% endif %}
+                                {% if not post.obj.visible %}
+                                    <span class="text-warning">[Скрыт]</span>
+                                {% endif %}
+                                {% if post.obj.deleted %}
+                                    <span class="text-error">[Удален]</span>
+                                {% endif %}
+                            </span>
+                        {% endif %}
+                </div>
+                <div class="list-col-wrap">
+                    <div class="post-content">
+                        {{post.obj.content|safe}}
+                    </div>
+                    <div class="flex w-full space-x-4 pt-5 items-center">
+                        <label class="swap btn">
+                            <input type="checkbox"/>
+                            <i class="swap-off fa-regular fa-thumbs-up"></i>
+                            <i class="swap-on fa-solid fa-thumbs-up"></i>
+                            <span class="ml-6">0</span>
+                        </label>
+                        <a class="btn"><i class="fa-solid fa-comment"></i> Ответить</a>
+                        <a class="btn"><i class="fa-solid fa-flag"></i> Пожаловаться</a>
+                        <span class="ml-auto">
+                            {% if post.obj.edited %}
+                                <span class="text-accent text-xs">[Изменен]</span>
+                            {% endif %}
+                            {{post.obj.created_at}}
+                        </span>
+                    </div>
+                </div>
+                {% comment %} <label class="swap btn btn-square btn-ghost">
+                    <input type="checkbox"/>
+                    <i class="swap-off fa-regular fa-heart"></i>
+                    <i class="swap-on fa-solid fa-heart"></i>
+                </label> {% endcomment %}
+                <div class="dropdown dropdown-end" x-data="{open:false}">
+                    <button class="btn btn-square btn-ghost" @click="open = !open">
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </button>
+                    <ul class="menu menu-sm dropdown-content bg-base-200 p-4 rounded-box w-52" x-cloak x-show="open" x-transition @click.outside="open=false">
+                        {% if flag.can_hide_post %}
+                            {% if post.obj.visible %}
+                                <li>
+                                    <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'hide' %}">
+                                        {% csrf_token %}
+                                        <button class="">
+                                            Скрыть
+                                        </button>    
+                                    </form>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'show' %}">
+                                        {% csrf_token %}
+                                        <button class="">
+                                            Показать
+                                        </button>    
+                                    </form>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                        {% if flag.can_pin_post %}
+                            {% if post.obj.pinned %}
+                                <li>
+                                    <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'unpin' %}">
+                                        {% csrf_token %}
+                                        <button class="btn-secondary w-full" title="Открепить">
+                                            Открепить
+                                        </button>    
+                                    </form>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'pin' %}">
+                                        {% csrf_token %}
+                                        <button class="btn-secondary w-full" title="Закрепить">
+                                            Закрепить
+                                        </button>    
+                                    </form>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                               
+                        {% if flag.can_edit_post %}
+                            <li>
+                                <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'edit' %}">
+                                    {% csrf_token %}
+                                    <button class="">
+                                        Изменить
+                                    </button>    
+                                </form>
+                            </li>
+                        {% endif %}
+                        {% if flag.can_delete_post and not post.obj.deleted %}
+                            <li>
+                                <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'delete' %}">
+                                    {% csrf_token %}
+                                    <button class="">
+                                        Удалить
+                                    </button>    
+                                </form>
+                            </li>
+                        {% endif %}
+                        {% if flag.can_delete_post and flag.can_really_delete_post %}
+                            <li>
+                                <button type="button"
+                                        class=""
+                                        onclick="delete_post_modal_{{ post.obj.id }}.showModal()">
+                                    Удалить навсегда
+                                </button>    
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </li>
+            <dialog id="delete_post_modal_{{ post.obj.id }}" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg text-error">
+            Удалить пост навсегда?
+        </h3>
+
+        <p class="py-4 text-sm opacity-80">
+            Это действие нельзя отменить.
+            Пост будет удалён навсегда.
+        </p>
+
+        <div class="modal-action">
+            <!-- Отмена -->
+            <form method="dialog">
+                <button class="btn btn-ghost">
+                    Отмена
+                </button>
+            </form>
+
+            <!-- Подтверждение -->
+            <form
+                method="POST"
+                action="{% url 'post' category.slug topic.id post.obj.id 'true_delete' %}">
+                {% csrf_token %}
+                <button class="btn btn-error">
+                    Да, удалить
+                </button>
+            </form>
+        </div>
+    </div>
+</dialog>
+        {% endfor %}
+    
+{% else %}
+    <li class="list-row">Эта тема пока пуста, напиши первый пост, не стесняйся</li>
+{% endif %}
+    <li class="list-row flex">
+        {% if flag.is_auth and flag.can_post%}
+            {% if not topic.closed or flag.can_post_closed %}
+                <form method="post" enctype="multipart/form-data" class="w-full max-w-none">
+                    {% csrf_token %}
+                    <div class="p-4 w-full">
+                        {{ form.content }}
+                    </div>
+                    <p class="text-sm px-4 text-secondary">Перед тем как что-то написать, ознакомьтесь с правилами форума во избежание автоматической блокировки</p> 
+                    <div class="flex p-4 space-x-4">
+                        <button class="btn btn-primary" type="submit">Сохранить</button>
+                    </div>
+                    
+                </form>
+            {% elif topic.closed and not flag.can_post_closed %}
+                <div class="p-4">
+                    Это обсуждение закрыто администратором 
+                </div>
+            {% endif %}
+        {% elif not flag.is_auth %}
+            <div class="p-4">
+                <a href="{% url 'login' %}" class="link link-hover link-secondary">Войди</a> <span>чтобы оставлять сообщения на форуме</span>
+            </div>
+        {% elif not flag.can_post %}
+            <div class="p-4">
+                Администратор запретил вам оставлять сообщения на форуме 
+            </div>
+        {% endif %}
+    </li>
+</ul>
+<div class="flex items-center justify-between p-2">
+    Посты: {{posts_count}} • Страница {{posts.number}} из {{posts.paginator.num_pages}}
+</div>
+<div class="p-8 flex items-center justify-center">
+    {% if posts.paginator.num_pages > 1 %}
+    <div class="join bg-base-100">
+        {% if posts.number > 3 %}
+            <div class="tooltip" data-tip="В начало">
+                <a href="?page=1"
+                class="join-item btn btn-square btn-outline btn-primary"
+                >
+                    <i class="fa-solid fa-angles-left"></i>
+                </a>
+            </div>
+        {% endif %}
+        {% if posts.has_previous %}
+            <div class="tooltip" data-tip="Назад">
+                <a href="?page={{posts.previous_page_number}}" class="join-item btn btn-square btn-outline btn-primary"><i class="fa-solid fa-angle-left"></i></a>
+            </div>
+        {% endif %}
+        {% for num in posts.paginator.page_range %}
+            {% if num == posts.number %}
+                <span class="join-item btn btn-square btn-primary btn-active">
+                    {{ num }}
+                </span>
+            {% elif num > posts.number|add:"-3" and num < posts.number|add:"3" %}
+                <a href="?page={{ num }}"
+                class="join-item btn btn-square btn-outline btn-primary">
+                    {{ num }}
+                </a>
+            {% endif %}
+        {% endfor %}
+        {% if posts.has_next %}
+            <div class="tooltip" data-tip="Вперед">
+                <a href="?page={{ posts.next_page_number }}" class="join-item btn btn-square btn-outline btn-primary">
+                    <i class="fa-solid fa-angle-right"></i>
+                </a>
+            </div>
+        {% endif %}
+        {% if posts.number < posts.paginator.num_pages|add:"-2" %}
+            <div class="tooltip" data-tip="В конец">
+                <a href="?page={{ posts.paginator.num_pages }}"
+                class="join-item btn btn-square btn-outline btn-primary">
+                    <i class="fa-solid fa-angles-right"></i>
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+    {% comment %} <div class="tb-block flex-center-between">
         <div class="flex-center-between space-x-2">
             <i class="fa-solid fa-comment-dots text-neutral-400 text-2xl pr-4"></i>
             <a href="{% url 'forum' %}" class="text-neutral-400 hover:text-neutral-600 hover:underline h-full">Форум</a>
@@ -35,7 +378,7 @@
             <a href="{% url 'topic' cat_slug=category.slug topic_id=topic.id %}" class="text-neutral-400 hover:text-neutral-600 hover:underline">{{topic.title}}</a>
         </div>
         <div class="flex items-center space-x-4">
-            {% comment %} <a href="#" class="btn-trans text-xl"><i class="fa-solid fa-magnifying-glass"></i></a> {% endcomment %}
+            <a href="#" class="btn-trans text-xl"><i class="fa-solid fa-magnifying-glass"></i></a>
             <div class="w-10 h-10 bg-transparent rounded-full overflow-hidden hover:border hover:border-neutral-600">
                 <a  href="{% url 'user' topic.author.username %}" class="w-full h-full">
                     <img src="{{topic.author.profile.avatar.url}}" class="w-full h-full object-cover"/>
@@ -49,7 +392,7 @@
                 {% if topic.pinned%}<i class="fa-solid fa-thumbtack pr-4"></i>{% endif %}{{topic.title}} 
             </div>
             <div class="text-neutral-400">
-            <span>Автор: <a href="{% url 'user' topic.author.username %}" class="text-neutral-50 hover:underline cursor-pointer">{{topic.author.profile.displayname}}</a> {% if topic.author.groups %}• {{topic.author.groups.first}}{% endif %} • {{topic.created_at}}{% if topic.closed %} • Тема закрыта{% endif %}</span>
+            <span>Автор: <a href="{% url 'user' topic.author.username %}" class="text-neutral-50 hover:underline cursor-pointer">{{topic.author.profile.displayname}}</a> {% if topic.author.groups.first %}• {{topic.author.groups.first}}{% endif %} • {{topic.created_at}}{% if topic.closed %} • Тема закрыта{% endif %}</span>
             </div>
         </div>
         <div class="h-full flex items-end">
@@ -71,7 +414,7 @@
                 {% endif %}
             <ul>
         </div>
-        {% comment %} <a href="{% url 'category' cat_slug=category.slug %}" class="btn-secondary">{{category.name}}</a>
+         <a href="{% url 'category' cat_slug=category.slug %}" class="btn-secondary">{{category.name}}</a>
     </div>
     <div class=" p-4 flex items-center justify-between">
         <div class="flex space-x-4 w-fit">
@@ -81,7 +424,7 @@
                 <span class="{{topic.author.groups.first.profile.style}}">{{topic.author.groups.first}}</span>
             </div>
         </div>
-        <a href="{% url 'topic' cat_slug=category.slug topic_id=topic.id %}" class="w-full h-full text-lg font-semibold p-4 mb-3 ">{{topic.title}}</a> {% endcomment %}
+        <a href="{% url 'topic' cat_slug=category.slug topic_id=topic.id %}" class="w-full h-full text-lg font-semibold p-4 mb-3 ">{{topic.title}}</a>
     </div>
     <div class="tb-block border-y-neutral-400 flex flex-col space-y-4 pt-4">
         {% if posts|length > 0 %}
@@ -106,7 +449,7 @@
                     </div>
                     <div class="flex flex-col w-full">
                         <div class="flex items-center justify-between mt-3">
-                            <span class="text-sm">{{post.obj.author.profile.displayname}}{% if post.obj.author.groups %}<span class="text-neutral-400"> • {{post.obj.author.groups.first}}</span>{% endif %}</span>       
+                            <span class="text-sm">{{post.obj.author.profile.displayname}}{% if post.obj.author.groups.first %}<span class="text-neutral-400"> • {{post.obj.author.groups.first}}</span>{% endif %}</span>       
                         </div>
                         <div class="flex text-neutral-400 space-x-1 mb-2">
                             {% if post.obj.pinned %}<span><i class="fa-solid fa-thumbtack"></i> •</span>{% endif %}
@@ -292,5 +635,5 @@
                     {% endif %}
                 </div>
                 {% endif %}
-            </div>
+            </div> {% endcomment %}
 {% endblock data %}
