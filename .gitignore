@@ -23,6 +23,7 @@ local_settings.py
 static/
 staticfiles/
 media/
+!main/static/
 
 # ======================
 # Database
