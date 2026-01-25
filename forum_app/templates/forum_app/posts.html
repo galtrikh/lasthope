@@ -99,16 +99,16 @@
                         {% if flags.can_close_topic %} 
                             {% if not topic.closed %}
                                 <li>
-                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'close' %}">
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'close' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="" type="submit">Закрыть тему</button>
+                                        <button class="w-full text-start cursor-pointer" type="submit">Закрыть тему</button>
                                     </form>
                                 </li>
                             {% else %}
                                 <li>
-                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'unclose' %}">
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'unclose' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="" type="submit">Открыть тему</button>
+                                        <button class="w-full text-start cursor-pointer" type="submit">Открыть тему</button>
                                     </form>
                                 </li>
                             {% endif %}
@@ -116,16 +116,16 @@
                         {% if flags.can_hide_topic %}
                             {% if topic.visible %}
                                 <li>
-                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'hide' %}">
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'hide' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="" type="submit">Скрыть</button>
+                                        <button class="w-full text-start cursor-pointer" type="submit">Скрыть</button>
                                     </form>
                                 </li>
                             {% else %}
                                 <li>
-                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'show' %}">
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'show' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="" type="submit">Показать</button>
+                                        <button class="w-full text-start cursor-pointer" type="submit">Показать</button>
                                     </form>
                                 </li>
                             {% endif %}
@@ -133,16 +133,16 @@
                         {% if flags.can_pin_topic %}
                             {% if not topic.pinned %}
                                 <li>
-                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'pin' %}">
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'pin' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="" type="submit">Закрепить</button>
+                                        <button class="w-full text-start cursor-pointer" type="submit">Закрепить</button>
                                     </form>
                                 </li>
                             {% else %}
                                 <li>
-                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'unpin' %}">
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'unpin' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="" type="submit">Открепить</button>
+                                        <button class="w-full text-start cursor-pointer" type="submit">Открепить</button>
                                     </form>
                                 </li>
                             {% endif %}
@@ -225,7 +225,7 @@
                 <div>
                     <a href="{% url 'user' post.obj.author.username %}">
                         <div class="tooltip" data-tip="Профиль">
-                            <div>{{post.obj.author.profile.displayname}}</div>
+                            <div>{{post.obj.author.profile.displayname}} [{{post.obj.author.profile.servername}}]</div>
                         
                         {% if post.obj.author.groups.all|length > 0 %}
                         <div class="text-xs uppercase font-semibold opacity-80">{{post.obj.author.groups.first}}</div>
@@ -302,18 +302,18 @@
                         {% if flags.can_hide_post %}
                             {% if post.obj.visible %}
                                 <li>
-                                    <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'hide' %}">
+                                    <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'hide' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="">
+                                        <button class="w-full text-start cursor-pointer">
                                             Скрыть
                                         </button>    
                                     </form>
                                 </li>
                             {% else %}
                                 <li>
-                                    <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'show' %}">
+                                    <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'show' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="">
+                                        <button class="w-full text-start cursor-pointer">
                                             Показать
                                         </button>    
                                     </form>
@@ -323,18 +323,18 @@
                         {% if flags.can_pin_post %}
                             {% if post.obj.pinned %}
                                 <li>
-                                    <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'unpin' %}">
+                                    <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'unpin' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="btn-secondary w-full" title="Открепить">
+                                        <button class="w-full text-start cursor-pointer">
                                             Открепить
                                         </button>    
                                     </form>
                                 </li>
                             {% else %}
                                 <li>
-                                    <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'pin' %}">
+                                    <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'pin' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="btn-secondary w-full" title="Закрепить">
+                                        <button class="w-full text-start cursor-pointer">
                                             Закрепить
                                         </button>    
                                     </form>
@@ -351,9 +351,9 @@
                         {% endif %}
                         {% if flags.can_delete_post and not post.obj.deleted %}
                             <li>
-                                <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'delete' %}">
+                                <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'delete' %}" class="fieldset">
                                     {% csrf_token %}
-                                    <button class="">
+                                    <button class="w-full text-start cursor-pointer">
                                         Удалить
                                     </button>    
                                 </form>
