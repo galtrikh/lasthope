@@ -108,6 +108,13 @@ class ForumPost(models.Model):
         related_name='posts'
         , verbose_name='Автор'
     )
+    parent = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        related_name="replies",
+        on_delete=models.CASCADE
+    )
     content = CKEditor5Field(config_name='default', verbose_name='Текст поста')
     pinned = models.BooleanField(default=False, verbose_name='Закреплен')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
@@ -115,6 +122,28 @@ class ForumPost(models.Model):
     edited = models.BooleanField(default=False, verbose_name='Изменен')
     visible = models.BooleanField(default=True, verbose_name='Отображается')
     deleted = models.BooleanField(default=False, verbose_name='Удален пользователем')
+
+    @property
+    def likes_count(self):
+        return self.likes.count()
+
+    @property
+    def popularity_percent(self):
+        return round((self.likes.count() * 100) / User.objects.all().count())
+
+    def get_absolute_url(self):
+        return reverse(
+            'topic',
+            kwargs={
+                'cat_slug': self.category.slug,
+                'topic_id': self.topic.id
+            }
+        ) + f"?page={self.id}"
+
+    def is_liked_by(self, user):
+        if not user.is_authenticated:
+            return False
+        return self.likes.filter(user=user).exists()
 
     def __str__(self):
         return f"Публикация пользователя {self.author} в теме {self.topic}"
@@ -173,5 +202,26 @@ class ForumTopicLike(models.Model):
             models.UniqueConstraint(
                 fields=['user', 'topic'],
                 name='unique_user_topic_like'
+            )
+        ]
+
+class ForumPostLike(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='post_likes'
+    )
+    post = models.ForeignKey(
+        ForumPost,
+        on_delete=models.CASCADE,
+        related_name='likes'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'post'],
+                name='unique_user_post_like'
             )
         ]

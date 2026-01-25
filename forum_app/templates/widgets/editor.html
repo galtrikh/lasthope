@@ -1,0 +1,27 @@
+<form method="post" x-ref="editorForm" class="px-10 mb-5 w-full">
+    {% csrf_token %}
+    {{ form.content }}
+    <input type="hidden" name="parent_id" x-model="replyTo" x-if="open">
+
+    <div class="mt-2 flex gap-2">
+        <button class="btn btn-primary" type="submit" x-show="!open_edit">Отправить</button>
+        <button class="btn btn-primary" type="submit" x-show="open_edit">Изменить</button>
+        <a
+            href="{% url 'topic' category.slug topic.id %}?page={{posts.paginator.num_pages}}"
+            type="button"
+            class="btn btn-ghost"
+            x-show="open_edit"
+            @click="open_edit = false"
+        >
+            Отмена
+        </a>
+        <button
+            type="button"
+            class="btn btn-ghost"
+            x-show="open"
+            @click="closeReply()"
+        >
+            Отмена
+        </button>
+    </div>
+</form>

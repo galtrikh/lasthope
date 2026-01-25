@@ -25,6 +25,26 @@
 <!--===========CONTENT=============-->
 
 {% block data %}
+<div
+    x-data="{
+        replyTo: null,
+        replyAuthor: null,
+        editPostId: {{ edit_post_id|default:'null' }},
+        open_edit: {{ edit_post_id|yesno:'true,false' }},
+        open: false,
+        openReply(postId, author, profile) {
+            this.replyTo = postId;
+            this.replyAuthor = author;
+            this.open = true;
+
+        },
+        closeReply() {
+            this.replyTo = null;
+            this.replyAuthor = null;
+            this.open = false;
+        }
+    }"
+>
 <ul class="list">
 <li class="not-lg:flex not-lg:flex-col-reverse list-row">
     <div class="not-lg:w-full stats bg-base-300 shadow">
@@ -75,11 +95,93 @@
                     <button class="btn btn-square btn-ghost" @click="open = !open">
                         <i class="fa-solid fa-ellipsis"></i>
                     </button>
-                    <ul class="menu menu-sm dropdown-content bg-base-300 p-4 rounded-box w-52" x-cloak x-show="open" x-transition @click.outside="open=false">
-                        <li><a>Скрыть</a></li>
-                        <li><a>Закрепить</a></li>
-                        <li><a>Удалить</a></li>
+                    <ul class="menu menu-sm dropdown-content bg-base-200 p-4 rounded-box w-52" x-cloak x-show="open" x-transition @click.outside="open=false">
+                        {% if flags.can_close_topic %} 
+                            {% if not topic.closed %}
+                                <li>
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'close' %}">
+                                        {% csrf_token %}
+                                        <button class="" type="submit">Закрыть тему</button>
+                                    </form>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'unclose' %}">
+                                        {% csrf_token %}
+                                        <button class="" type="submit">Открыть тему</button>
+                                    </form>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                        {% if flags.can_hide_topic %}
+                            {% if topic.visible %}
+                                <li>
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'hide' %}">
+                                        {% csrf_token %}
+                                        <button class="" type="submit">Скрыть</button>
+                                    </form>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'show' %}">
+                                        {% csrf_token %}
+                                        <button class="" type="submit">Показать</button>
+                                    </form>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                        {% if flags.can_pin_topic %}
+                            {% if not topic.pinned %}
+                                <li>
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'pin' %}">
+                                        {% csrf_token %}
+                                        <button class="" type="submit">Закрепить</button>
+                                    </form>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'unpin' %}">
+                                        {% csrf_token %}
+                                        <button class="" type="submit">Открепить</button>
+                                    </form>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                        {% if flags.can_delete_topic %}
+                            <li><button class="" onclick="delete_topic_modal_{{ topic.id }}.showModal()">Удалить</button></li>
+                        {% endif %}
                     </ul>
+                    <dialog id="delete_topic_modal_{{ topic.id }}" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg text-error">
+            Удалить тему навсегда?
+        </h3>
+
+        <p class="py-4 text-sm opacity-80">
+            Это действие нельзя отменить.
+            Тема будет удалёна навсегда.
+        </p>
+
+        <div class="modal-action">
+            <!-- Отмена -->
+            <form method="dialog">
+                <button class="btn btn-ghost">
+                    Отмена
+                </button>
+            </form>
+
+            <!-- Подтверждение -->
+            <form
+                method="POST"
+                action="{% url 'topic_edit' category.slug topic.id 'delete' %}">
+                {% csrf_token %}
+                <button class="btn btn-error" onclick="create_topic_modal.showModal()">
+                    Да, удалить
+                </button>
+            </form>
+        </div>
+    </div>
+</dialog>
                 </div>
             </li>
         </ul>
@@ -146,17 +248,38 @@
                         {% endif %}
                 </div>
                 <div class="list-col-wrap">
-                    <div class="post-content">
+                    <div class="list-row border-b-0" x-show="open_edit && editPostId === {{post.obj.id}}">
+                        <template x-if="open_edit && editPostId === {{ post.obj.id }}" class="w-full">
+                            <div class="mt-3" class="px-10">
+                                {% include "widgets/editor.html" %}
+                            </div>
+                        </template>
+                    </div>
+                    <div class="post-content" x-show="editPostId !== {{ post.obj.id }}">
+                        {% if post.obj.parent %}
+                            <i>Ответ пользователю: <a href="{% url 'user' post.obj.parent.author.username %}" class="link link-hover">{{post.obj.parent.author.profile.displayname}}</a></i>
+                            <blockquote class="line-clamp-6">
+                                {{post.obj.parent.content|safe}}
+                            </blockquote>
+                        {% endif %}
                         {{post.obj.content|safe}}
                     </div>
-                    <div class="flex w-full space-x-4 pt-5 items-center">
+                    <div class="flex w-full space-x-4 pt-5 items-center" x-data="{
+                                likes: {{ post.obj.likes_count }},
+                                liked: {{ post.obj.is_liked|yesno:'true,false' }}
+                            }">
                         <label class="swap btn">
-                            <input type="checkbox"/>
+                            <input type="checkbox"
+                            data-category-slug="{{category.slug}}"
+                            data-topic-id="{{topic.id}}"
+                            data-post-id="{{post.obj.id}}"
+                            x-model="liked"
+                            @change="likes += liked ? 1 : -1"/>
                             <i class="swap-off fa-regular fa-thumbs-up"></i>
                             <i class="swap-on fa-solid fa-thumbs-up"></i>
-                            <span class="ml-6">0</span>
+                            <span class="ml-6" x-text="likes"></span>
                         </label>
-                        <a class="btn"><i class="fa-solid fa-comment"></i> Ответить</a>
+                        <button class="btn" @click="openReply({{ post.obj.id }}, '{{ post.obj.author.profile.displayname }}')"><i class="fa-solid fa-comment"></i> Ответить</button>
                         <a class="btn"><i class="fa-solid fa-flag"></i> Пожаловаться</a>
                         <span class="ml-auto">
                             {% if post.obj.edited %}
@@ -176,7 +299,7 @@
                         <i class="fa-solid fa-ellipsis"></i>
                     </button>
                     <ul class="menu menu-sm dropdown-content bg-base-200 p-4 rounded-box w-52" x-cloak x-show="open" x-transition @click.outside="open=false">
-                        {% if flag.can_hide_post %}
+                        {% if flags.can_hide_post %}
                             {% if post.obj.visible %}
                                 <li>
                                     <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'hide' %}">
@@ -197,7 +320,7 @@
                                 </li>
                             {% endif %}
                         {% endif %}
-                        {% if flag.can_pin_post %}
+                        {% if flags.can_pin_post %}
                             {% if post.obj.pinned %}
                                 <li>
                                     <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'unpin' %}">
@@ -219,17 +342,14 @@
                             {% endif %}
                         {% endif %}
                                
-                        {% if flag.can_edit_post %}
+                        {% if flags.can_edit_post %}
                             <li>
-                                <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'edit' %}">
-                                    {% csrf_token %}
-                                    <button class="">
+                                <a @click="open_edit = !open_edit" href="{% url 'topic' category.slug topic.id %}?edit={{post.obj.id}}#post-id-{{post.obj.id}}">
                                         Изменить
-                                    </button>    
-                                </form>
+                                </a>
                             </li>
                         {% endif %}
-                        {% if flag.can_delete_post and not post.obj.deleted %}
+                        {% if flags.can_delete_post and not post.obj.deleted %}
                             <li>
                                 <form method="POST" action="{% url 'post' category.slug topic.id post.obj.id 'delete' %}">
                                     {% csrf_token %}
@@ -239,7 +359,7 @@
                                 </form>
                             </li>
                         {% endif %}
-                        {% if flag.can_delete_post and flag.can_really_delete_post %}
+                        {% if flags.can_delete_post and flags.can_really_delete_post %}
                             <li>
                                 <button type="button"
                                         class=""
@@ -250,6 +370,16 @@
                         {% endif %}
                     </ul>
                 </div>
+            </li>
+            <li class="list-row flex flex-col" x-show="open">
+                <div x-show="open" class="text-sm opacity-70 mb-1 px-10 pt-10">
+                    Ответ пользователю <span x-text="replyAuthor"></span>
+                </div>
+                <template x-if="open && replyTo === {{ post.obj.id }}" class="px-10">
+                    <div class="mt-3" class="px-10">
+                        {% include "widgets/editor.html" %}
+                    </div>
+                </template>
             </li>
             <dialog id="delete_post_modal_{{ post.obj.id }}" class="modal">
     <div class="modal-box">
@@ -288,9 +418,14 @@
     <li class="list-row">Эта тема пока пуста, напиши первый пост, не стесняйся</li>
 {% endif %}
     <li class="list-row flex">
-        {% if flag.is_auth and flag.can_post%}
-            {% if not topic.closed or flag.can_post_closed %}
-                <form method="post" enctype="multipart/form-data" class="w-full max-w-none">
+        {% if flags.is_auth and flags.can_post%}
+            {% if not topic.closed or flags.can_post_closed %}
+                <template x-if="!open && !open_edit" class="w-full">
+                    <div class="list-row flex w-full">
+                        {% include 'widgets/editor.html' %} 
+                    </div>
+                </template>
+                {% comment %} <form method="post" enctype="multipart/form-data" class="w-full max-w-none">
                     {% csrf_token %}
                     <div class="p-4 w-full">
                         {{ form.content }}
@@ -300,17 +435,17 @@
                         <button class="btn btn-primary" type="submit">Сохранить</button>
                     </div>
                     
-                </form>
-            {% elif topic.closed and not flag.can_post_closed %}
+                </form> {% endcomment %}
+            {% elif topic.closed and not flags.can_post_closed %}
                 <div class="p-4">
                     Это обсуждение закрыто администратором 
                 </div>
             {% endif %}
-        {% elif not flag.is_auth %}
+        {% elif not flags.is_auth %}
             <div class="p-4">
                 <a href="{% url 'login' %}" class="link link-hover link-secondary">Войди</a> <span>чтобы оставлять сообщения на форуме</span>
             </div>
-        {% elif not flag.can_post %}
+        {% elif not flags.can_post %}
             <div class="p-4">
                 Администратор запретил вам оставлять сообщения на форуме 
             </div>
@@ -636,4 +771,40 @@
                 </div>
                 {% endif %}
             </div> {% endcomment %}
+<script>
+document.addEventListener('change', async (e) => {
+  const btn = e.target.closest('input[data-category-slug]')
+  if (!btn) return
+
+  const categorySlug = btn.dataset.categorySlug
+  const topicId = btn.dataset.topicId
+  const postId = btn.dataset.postId
+
+  const response = await fetch(
+    `/forum/category/${categorySlug}/${topicId}/${postId}/like/`,
+    {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Accept': 'application/json'
+      }
+    }
+  )
+
+  if (!response.ok) return
+
+  const data = await response.json()
+
+ 
+  btn.checked = data.liked
+})
+
+function getCookie(name) {
+  return document.cookie
+    .split('; ')
+    .find(row => row.startsWith(name + '='))
+    ?.split('=')[1]
+}
+</script>
+</div>
 {% endblock data %}

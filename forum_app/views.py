@@ -1,5 +1,5 @@
-from django.shortcuts import render, redirect
-from .models import ForumCategory, ForumTopic, ForumPost, ForumCategoryLike, ForumTopicLike
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import ForumCategory, ForumTopic, ForumPost, ForumCategoryLike, ForumTopicLike, ForumPostLike
 import markdown
 from .templatetags import forum_filters
 from django.urls import reverse
@@ -174,10 +174,36 @@ def posts(request, cat_slug, topic_id):
     POSTS_PER_PAGE = 20
     category = ForumCategory.objects.get(slug=cat_slug)
     topic = ForumTopic.objects.get(id=topic_id)
+
+    edit_post_id = request.GET.get("edit")
+    edit_post = None
+
+    if edit_post_id:
+        edit_post = get_object_or_404(
+            ForumPost,
+            id=edit_post_id,
+            author=request.user
+        )
+
     if request.user.has_perm('forum_app.can_see_hidden_post'):
         postslist = ForumPost.objects.filter(topic=topic).order_by('-pinned', 'id')
     else:
         postslist = ForumPost.objects.filter(visible=True, topic=topic).order_by('-pinned', 'id')
+
+    if request.user.is_authenticated:
+        postslist = postslist.annotate(
+            is_liked=Exists(
+                ForumPostLike.objects.filter(
+                    user=request.user,
+                    post=OuterRef('pk')
+                )
+            )
+        )
+    else:
+        postslist = postslist.annotate(
+            is_liked=Value(False, output_field=BooleanField())
+        )
+
     posts = []
     for post in postslist:
         post.content = forum_filters.safe_html(post.content)
@@ -209,13 +235,34 @@ def posts(request, cat_slug, topic_id):
             'is_safety': is_safety
         })
 
+    
+
+
         
     if request.method == "POST":
-        form = PostCreationForm(request.POST, request.FILES)
+        if edit_post:
+            form = PostCreationForm(
+                request.POST,
+                request.FILES,
+                instance=edit_post
+            )
+        else:
+            form = PostCreationForm(request.POST, request.FILES)
+        parent = None
+        if not post.parent:
+            parent_id = request.POST.get("parent_id")
+            if parent_id:
+                parent = ForumPost.objects.get(id=parent_id)
+        else:
+            parent = post.parent
+        # form = PostCreationForm(request.POST, request.FILES)
         if form.is_valid():
             post = form.save(commit=False)
             post.topic = topic
             post.author = request.user
+            post.parent = parent
+            if edit_post:
+                post.edited = True
             post.save()
             moderate_post(post)
             posts_qs = topic.posts.order_by('created_at')  # важно: тот же order_by
@@ -224,8 +271,11 @@ def posts(request, cat_slug, topic_id):
             last_page = paginator.num_pages
             return redirect(f"{reverse('topic', kwargs={'cat_slug': category.slug, 'topic_id': topic.id})}?page={last_page}#post-id-{post.id}")
     else:
-        form = PostCreationForm
-    flag = {
+        if edit_post:
+            form = PostCreationForm(instance=edit_post)
+        else:
+            form = PostCreationForm()
+    flags = {
         'is_auth': request.user.is_authenticated,
         'can_post': request.user.has_perm('forum_app.can_post'),
         'can_post_closed': request.user.has_perm('forum_app.can_post_closed'),
@@ -252,7 +302,8 @@ def posts(request, cat_slug, topic_id):
         'posts' : page_obj,
         'posts_count': len(posts),
         'form' : form,
-        'flag': flag,
+        'flags': flags,
+        'edit_post_id': edit_post.id if edit_post else None
     }
     return render(request, 'forum_app/posts.html', data)
 
@@ -407,7 +458,7 @@ def post(request, cat_slug, topic_id, post_id, flag):
             obj=post
         )
     if flag == 'edit' and request.user.has_perm('forum_app.can_edit_post'):
-        return render(request, 'forum_app/post.html', {'post':post, 'form': PostCreationForm(initial={'content':post.content})})
+        return render(request, 'forum_app/posts.html', {'post':post, 'form': PostCreationForm(initial={'content':post.content})})
     if flag == 'save_edit' and request.user.has_perm('forum_app.can_edit_post'):
         form = PostCreationForm(request.POST, request.FILES, instance=post)
         if form.is_valid():
@@ -447,5 +498,22 @@ def post(request, cat_slug, topic_id, post_id, flag):
         )
         post.delete()
         return redirect('topic', cat_slug=cat_slug, topic_id=topic_id)
+    if flag == 'like':
+
+        like, created = ForumPostLike.objects.get_or_create(
+            user=request.user,
+            post=post
+        )
+
+        if created:
+            liked = True
+        else:
+            like.delete()
+            liked = False
+
+        return JsonResponse({
+            'liked': liked,
+            'likes_count': post.likes.count()
+        })
     post.save()
     return redirect('topic', cat_slug=cat_slug, topic_id=topic_id)
