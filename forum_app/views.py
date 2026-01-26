@@ -5,7 +5,7 @@ from .templatetags import forum_filters
 from django.urls import reverse
 from django.http import JsonResponse
 from forum_app.models import ForumPost
-from forum_app.froms import PostCreationForm, TopicCreationForm
+from forum_app.froms import PostCreationForm, TopicCreationForm, CategoryCreationForm
 from django.utils.dateparse import parse_datetime
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
@@ -15,6 +15,7 @@ from notification.models import Notification
 from forum_filter.services import moderate_post
 from django.views.decorators.http import require_POST
 from django.db.models import Exists, OuterRef, Value, BooleanField
+from django.utils.text import slugify
 
 
 # Create your views here.
@@ -57,6 +58,35 @@ def index(request):
         categories = ForumCategory.objects.all()
     else:
         categories = ForumCategory.objects.filter(visible=True)
+        
+
+    if request.method == "POST":
+        if request.user.has_perm('forum_app.can_hide_cats'):
+            if request.GET.get("hide"):
+                category = ForumCategory.objects.get(id=request.GET.get("hide"))
+                category.visible = False
+                category.save()
+                return redirect('forum')
+            if request.GET.get("show"):
+                category = ForumCategory.objects.get(id=request.GET.get("show"))
+                category.visible = True
+                category.save()
+                return redirect('forum')
+        if request.GET.get("delete") and request.user.has_perm('forum_app.can_delete_cats'):
+            category = ForumCategory.objects.get(id=request.GET.get("delete"))
+            category.delete()
+            return redirect('forum')
+        if not request.user.has_perm('forum_app.can_create_cats'):
+            return HttpResponseForbidden()
+        form = CategoryCreationForm(request.POST)
+        if form.is_valid():
+            category = form.save(commit=False)
+            category.author = request.user
+            category.slug = slugify(category.name)
+            category.save()
+            return redirect(category.get_absolute_url())
+    else:
+        form = CategoryCreationForm()
 
     if request.user.is_authenticated:
         categories = categories.annotate(
@@ -72,7 +102,8 @@ def index(request):
             is_liked=Value(False, output_field=BooleanField())
         )
     data = {
-        'categories' : categories
+        'categories' : categories,
+        'form': form
     }
     return render(request, 'forum_app/index.html', data)
 

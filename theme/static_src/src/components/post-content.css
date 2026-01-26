@@ -60,6 +60,46 @@
     @apply text-sm opacity-75;
   }
 
+  .post-content .text-tiny {
+    @apply text-xs;
+  }
+
+  .post-content .text-small {
+    @apply text-sm;
+  }
+
+  .post-content .text-big {
+    @apply text-lg;
+  }
+
+  .post-content .text-huge {
+    @apply text-xl;
+  }
+
+  .post-content .marker-yellow {
+    @apply bg-yellow-200;
+  }
+
+  .post-content .marker-blue {
+    @apply bg-blue-400;
+  }
+
+  .post-content .marker-pink {
+    @apply bg-pink-400;
+  }
+
+  .post-content .marker-green {
+    @apply bg-green-500;
+  }
+
+  .post-content .pen-red {
+    @apply text-red-500;
+  }
+
+  .post-content .pen-green {
+    @apply text-green-700;
+  }
+
   /* =========================================================
      ССЫЛКИ
      ========================================================= */
@@ -156,11 +196,11 @@
     @apply float-left mr-4 mb-2;
   }
 
-  .post-content .image-style-align-right {
+  .post-content .image.image-style-side {
     @apply float-right ml-4 mb-2;
   }
 
-  .post-content .image-style-align-center {
+  .post-content .image>img {
     @apply mx-auto block;
   }
 

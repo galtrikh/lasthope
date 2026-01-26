@@ -166,7 +166,7 @@
 
   /* todo-list (CKEditor) */
   .ck-content ul.todo-list {
-    @apply list-none pl-0;
+    @apply list-none pl-10;
   }
 
   .ck-content ul.todo-list li {

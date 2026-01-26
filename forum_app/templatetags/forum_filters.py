@@ -11,7 +11,7 @@ register = template.Library()
 
 ALLOWED_TAGS = [
     # текст
-    'p', 'br', 'span',
+    'p', 'br', 'span', 'sub', 'sup', 'mark',
     'b', 'i', 'u', 'em', 'strong', 's',
 
     # заголовки
@@ -43,10 +43,10 @@ ALLOWED_TAGS = [
     'div',
 ]
 ALLOWED_ATTRS = {
-    '*': ['class', 'style'],
+    '*': ['class', 'style', 'data-oembed-url'],
 
     'a': ['href', 'title', 'target', 'rel'],
-    'img': ['src', 'alt', 'title', 'width', 'height'],
+    'img': ['src', 'alt', 'title', 'width', 'height', 'loading', 'style'],
     'iframe': [
         'src',
         'width',
@@ -66,6 +66,8 @@ ALLOWED_STYLES = [
     'width',
     'height',
     'max-width',
+    'top',
+    'left',
 
     'text-align',
     'float',
@@ -77,6 +79,10 @@ ALLOWED_STYLES = [
     'border',
     'border-radius',
     'font-family',
+    'list-style-type',
+    'position',
+    'padding-bottom',
+    'aspect-ratio',
 ]
 
 ALLOWED_IFRAME_DOMAINS = (

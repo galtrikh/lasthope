@@ -9,12 +9,28 @@ class ForumCategory(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name='Наименование')
     description = models.TextField(blank=True, null=True, verbose_name='Описание')
     slug = models.SlugField(unique=True, verbose_name='Вид ссылки')
-    icon = models.CharField(verbose_name='Иконка', help_text='С сайта Fontawesome', default='<i class="fa-solid fa-icons"></i>')
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name='categories'
+        , verbose_name='Автор'
+    )
+    icon = models.CharField(verbose_name='Иконка', help_text='С сайта Fontawesome', default='fa-solid fa-icons')
     visible = models.BooleanField(default=True, verbose_name='Отображается')
     
     @property
     def likes_count(self):
         return self.likes.count()
+
+    def get_absolute_url(self):
+        category = ForumCategory.objects.get(id=self.id)
+        return reverse(
+            'category',
+            kwargs={
+                'cat_slug': category.slug
+            }
+        )
 
     def is_liked_by(self, user):
         if not user.is_authenticated:
@@ -28,6 +44,8 @@ class ForumCategory(models.Model):
         permissions = [
             ('can_see_hidden_cats', 'Видеть скрытые категории'),
             ('can_hide_cats', 'Скрывать категории'),
+            ('can_create_cats', 'Создавать катеории'),
+            ('can_delete_cats', 'Удалять категории'),
         ]
         verbose_name = 'Категорию'
         verbose_name_plural = 'Категории'

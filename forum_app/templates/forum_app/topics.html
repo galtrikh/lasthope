@@ -33,7 +33,12 @@
                 <div class="text-4xl"><i class="{{topic.icon}}"></i></div>
                 <a href="{% url 'topic' cat_slug=category.slug topic_id=topic.id%}">
                     {% comment %} <div>{{topic.title}}</div> {% endcomment %}
-                    <div class="text-xs uppercase font-semibold opacity-80">{{topic.title}}</div>
+                    <div class="text-xs uppercase font-semibold opacity-80">
+                        {{topic.title}}
+                        {% if not topic.visible %}<span><i class="fa-solid fa-eye-slash text-sx opacity-50"></i><span>{% endif %}
+                        {% if topic.pinned %}<span><i class="fa-solid fa-thumbtack text-sx opacity-50"></i></span>{% endif %}  
+                        {% if topic.closed %}<span><i class="fa-solid fa-lock text-xs opacity-50"></i></span>{% endif %}
+                    </div>
                 </a>
                 <label class="swap btn btn-square btn-ghost">
                     <input type="checkbox"
@@ -51,16 +56,16 @@
                         {% if topic.flag.can_close_topic %} 
                             {% if not topic.closed %}
                                 <li>
-                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'close' %}">
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'close' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="" type="submit">Закрыть тему</button>
+                                        <button class="w-full text-start cursor-pointer" type="submit">Закрыть тему</button>
                                     </form>
                                 </li>
                             {% else %}
                                 <li>
-                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'unclose' %}">
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'unclose' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="" type="submit">Открыть тему</button>
+                                        <button class="w-full text-start cursor-pointer" type="submit">Открыть тему</button>
                                     </form>
                                 </li>
                             {% endif %}
@@ -68,16 +73,16 @@
                         {% if topic.flag.can_hide_topic %}
                             {% if topic.visible %}
                                 <li>
-                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'hide' %}">
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'hide' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="" type="submit">Скрыть</button>
+                                        <button class="w-full text-start cursor-pointer" type="submit">Скрыть</button>
                                     </form>
                                 </li>
                             {% else %}
                                 <li>
-                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'show' %}">
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'show' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="" type="submit">Показать</button>
+                                        <button class="w-full text-start cursor-pointer" type="submit">Показать</button>
                                     </form>
                                 </li>
                             {% endif %}
@@ -85,22 +90,22 @@
                         {% if topic.flag.can_pin_topic %}
                             {% if not topic.pinned %}
                                 <li>
-                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'pin' %}">
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'pin' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="" type="submit">Закрепить</button>
+                                        <button class="w-full text-start cursor-pointer" type="submit">Закрепить</button>
                                     </form>
                                 </li>
                             {% else %}
                                 <li>
-                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'unpin' %}">
+                                    <form method="post" action="{% url 'topic_edit' category.slug topic.id 'unpin' %}" class="fieldset">
                                         {% csrf_token %}
-                                        <button class="" type="submit">Открепить</button>
+                                        <button class="w-full text-start cursor-pointer" type="submit">Открепить</button>
                                     </form>
                                 </li>
                             {% endif %}
                         {% endif %}
                         {% if topic.flag.can_delete_topic %}
-                            <li><button class="" onclick="delete_topic_modal_{{ topic.id }}.showModal()">Удалить</button></li>
+                            <li><button class="w-full text-start cursor-pointer" onclick="delete_topic_modal_{{ topic.id }}.showModal()">Удалить</button></li>
                         {% endif %}
                     </ul>
                 </div>
@@ -184,9 +189,9 @@
                        <label class="label">
                             Иконка
                        </label>
-                       <div class="grid grid-cols-6 gap-2 mt-4">
+                       <div class="grid grid-cols-9 gap-2 mt-4">
                             {% for value, label in form.fields.icon.choices %}
-                                <label class="join-item btn">
+                                <label class="join-item btn btn-square">
                                     <input
                                         type="radio"
                                         name="{{ form.icon.name }}"

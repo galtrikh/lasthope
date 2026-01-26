@@ -25,9 +25,9 @@
    
         {% for category in categories %}
             <li class="list-row hover:bg-base-300 transition-colors duration-300">
-                <div class="text-4xl">{{category.icon|safe}}</div>
+                <div class="text-4xl"><i class="{{category.icon}}"></i></div>
                 <a href="{% url 'category' category.slug %}">
-                    <div>{{category.name}}</div>
+                    <div>{{category.name}} {% if not category.visible %}<span><i class="fa-solid fa-eye-slash text-xs opacity-50"></i></span>{% endif %}</div>
                     <div class="text-xs uppercase font-semibold opacity-60">{{category.description}}</div>
                 </a>
                 <label class="swap btn btn-square btn-ghost">
@@ -42,17 +42,137 @@
                         <i class="fa-solid fa-ellipsis"></i>
                     </button>
                     <ul class="menu menu-sm dropdown-content bg-base-100 p-4 rounded-box w-52" x-cloak x-show="open" x-transition @click.outside="open=false">
-                        <li><a>Скрыть</a></li>
-                        <li><a>Закрепить</a></li>
-                        <li><a>Удалить</a></li>
+                        {% if category.visible %}
+                            <li>
+                                <form method="post" action="{% url 'forum' %}?hide={{category.id}}" class="fieldset">
+                                    {% csrf_token %}
+                                    <button class="w-full cursor-pointer text-start" type="submit">Скрыть</button>
+                                </form>
+                            </li>
+                        {% else %}
+                            <li>
+                                <form method="post" action="{% url 'forum' %}?show={{category.id}}" class="fieldset">
+                                    {% csrf_token %}
+                                    <button class="w-full cursor-pointer text-start" type="submit">Показать</button>
+                                </form>
+                            </li>
+                        {% endif %}
+                        <li><button onclick="delete_cat_modal_{{category.id}}.showModal()" class="w-full">Удалить</button></li>
                     </ul>
                 </div>
+                <dialog id="delete_cat_modal_{{ category.id }}" class="modal">
+                    <div class="modal-box">
+                        <h3 class="font-bold text-lg text-error">
+                            Удалить категорию навсегда?
+                        </h3>
+
+                        <p class="py-4 text-sm opacity-80">
+                            Это действие нельзя отменить.
+                            Категория будет удалёна навсегда.
+                        </p>
+
+                        <div class="modal-action">
+                            <!-- Отмена -->
+                            <form method="dialog">
+                                <button class="btn btn-ghost">
+                                    Отмена
+                                </button>
+                            </form>
+
+                            <!-- Подтверждение -->
+                            <form method="POST" action="{% url 'forum' %}?delete={{category.id}}">
+                                {% csrf_token %}
+                                <button class="btn btn-error" type="submit" onclick="delete_cat_modal_{{category.id}}.close()">
+                                    Да, удалить
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </dialog>
             </li>
         {% endfor %}
     
 {% else %}
     <li class="list-row">Форум пуст</li>
 {% endif %}
+{% if perms.forum_app.can_create_cats %}
+        <!-- Кнопка открытия модалки -->
+        <li class="list-row">
+            <!-- Кнопка открытия модалки -->
+        
+            <button type="button"
+                    class="btn btn-primary"
+                    onclick="create_cat_modal.showModal()">
+                Создать категорию
+            </button>
+
+            <dialog id="create_cat_modal" class="modal">
+                <div class="modal-box">
+                    <h3 class="font-bold text-lg">
+                        Создание категории
+                    </h3>
+                    <form
+                            method="POST">
+                            {% csrf_token %}
+                        <label class="label">Название</label>
+                        <label class="input w-full">
+                            <i class="fa-solid fa-file-signature opacity-50"></i>
+                            {{form.name}}
+                        </label>
+                        <label class="label">Описание</label>
+                        <label class="input w-full">
+                            <i class="fa-solid fa-file-lines opacity-50"></i>
+                            {{form.description}}
+                        </label>
+                        <fieldset class="fieldset bg-base-100 border-base-300 rounded-box w-64 border p-4">
+                            <legend class="fieldset-legend">Настройки</legend>
+                            <label class="label">
+                                {{form.visible}}
+                                Видимая
+                            </label>
+                        </fieldset>
+                       <label class="label">
+                            Иконка
+                       </label>
+                       <div class="grid grid-cols-9 gap-2 mt-4">
+                            {% for value, label in form.fields.icon.choices %}
+                                <label class="join-item btn btn-square">
+                                    <input
+                                        type="radio"
+                                        name="{{ form.icon.name }}"
+                                        value="{{ value }}"
+                                        class="hidden peer"
+                                        {% if form.icon.value == value %}checked{% endif %}
+                                    >
+                                    <i class="{{ value }} text-xs
+                                    peer-checked:text-primary"></i>
+                                </label>
+                            {% endfor %}
+                        </div>
+
+
+
+                        <div class="modal-action">
+                            <!-- Отмена -->
+                            
+                                <label class="btn btn-ghost" onclick="create_cat_modal.close()">
+                                    Отмена
+                                </label>
+                        
+
+                            <!-- Подтверждение -->
+                            
+                                <button class="btn btn-primary" type="submit">
+                                    Сохранить
+                                </button>
+                            
+                        </div>
+                    </form>
+                </div>
+            </dialog>
+        </li>
+
+    {% endif %}
 </ul>
 <script>
 document.addEventListener('change', async (e) => {

@@ -61,7 +61,7 @@
         <ul class="list bg-base-300 rounded-box shadow hover:bg-base-200 transition-colors duration-300">
             <li class="list-row">
                 <div class="text-4xl">
-                    {{category.icon|safe}}
+                    <i class="{{category.icon}}"></i>
                 </div>
                 <a href="{% url 'category' category.slug %}">
                     <div class="text-neutral-content text-2xl font-semibold">
@@ -344,7 +344,7 @@
                                
                         {% if flags.can_edit_post %}
                             <li>
-                                <a @click="open_edit = !open_edit" href="{% url 'topic' category.slug topic.id %}?edit={{post.obj.id}}#post-id-{{post.obj.id}}">
+                                <a @click="open_edit = !open_edit" href="{% url 'topic' category.slug topic.id %}?page={{posts.number}}&edit={{post.obj.id}}#post-id-{{post.obj.id}}">
                                         Изменить
                                 </a>
                             </li>

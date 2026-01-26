@@ -2,12 +2,12 @@
     {% csrf_token %}
     {{ form.content }}
     <input type="hidden" name="parent_id" x-model="replyTo" x-if="open">
-
+    <div class="text-sm text-secondary py-5">Перед тем как что-то написать на форуме внимательно прочитай правила</div>
     <div class="mt-2 flex gap-2">
         <button class="btn btn-primary" type="submit" x-show="!open_edit">Отправить</button>
         <button class="btn btn-primary" type="submit" x-show="open_edit">Изменить</button>
         <a
-            href="{% url 'topic' category.slug topic.id %}?page={{posts.paginator.num_pages}}"
+            href="{% url 'topic' category.slug topic.id %}?page={{posts.number}}"
             type="button"
             class="btn btn-ghost"
             x-show="open_edit"
