@@ -15,7 +15,10 @@ from notification.models import Notification
 from forum_filter.services import moderate_post
 from django.views.decorators.http import require_POST
 from django.db.models import Exists, OuterRef, Value, BooleanField
-from django.utils.text import slugify
+from django.utils.text import slugify, Truncator
+from django.utils.html import strip_tags
+from bs4 import BeautifulSoup
+
 
 
 # Create your views here.
@@ -201,6 +204,16 @@ def topic_like(request, cat_slug, topic_id):
         'likes_count': topic.likes.count()
     })
 
+def get_post_page(*, topic, post, per_page):
+    qs = topic.posts.order_by('-pinned', 'id').values_list('id', flat=True)
+
+    try:
+        index = list(qs).index(post.id)
+    except ValueError:
+        return 1
+
+    return index // per_page + 1
+
 def posts(request, cat_slug, topic_id):
     POSTS_PER_PAGE = 20
     category = ForumCategory.objects.get(slug=cat_slug)
@@ -257,18 +270,55 @@ def posts(request, cat_slug, topic_id):
 
         is_safety = not request.user.is_superuser and post.author.has_perm('user.safety')
 
+        parent_preview = None
+        parent_url = None
+        meta = ''
+        if post.parent:
+            clean_parent = forum_filters.safe_html(post.parent.content)
+            text_parent = strip_tags(clean_parent)
+
+            parent_preview = Truncator(text_parent).chars(
+                160,
+                truncate='…'
+            )
+
+            soup = BeautifulSoup(clean_parent, 'html.parser')
+
+            has_image = bool(soup.find('img'))
+            has_table = bool(soup.find('table'))
+            has_iframe = bool(soup.find('iframe'))
+
+            indicators = []
+            if has_image:
+                indicators.append('<span><i class="fa-solid fa-image"></i> изображение</span>')
+            if has_table:
+                indicators.append('<span><i class="fa-solid fa-table"></i> таблица</span>')
+            if has_iframe:
+                indicators.append('<span><i class="fa-solid fa-film"></i> медиа</span>')
+
+            meta = ' · '.join(indicators) if indicators else None
+
+            page = get_post_page(
+                topic=topic,
+                post=post.parent,
+                per_page=POSTS_PER_PAGE
+            )
+
+            parent_url = (
+                f"{reverse('topic', kwargs={'cat_slug': category.slug, 'topic_id': topic.id})}"
+                f"?page={page}#post-id-{post.parent.id}"
+            )
         posts.append({
             'obj': post,
+            'parent_preview': parent_preview,
+            'parent_meta': meta,
+            'parent_url': parent_url,
             'is_owner': is_owner,
             'can_edit': can_edit,
             'can_delete': can_delete,
             'can_pin': can_pin,
             'is_safety': is_safety
         })
-
-    
-
-
         
     if request.method == "POST":
         if edit_post:
@@ -280,12 +330,14 @@ def posts(request, cat_slug, topic_id):
         else:
             form = PostCreationForm(request.POST, request.FILES)
         parent = None
-        if not post.parent:
-            parent_id = request.POST.get("parent_id")
-            if parent_id:
-                parent = ForumPost.objects.get(id=parent_id)
-        else:
-            parent = post.parent
+        parent_id = request.POST.get("parent_id")
+
+        if parent_id:
+            parent = get_object_or_404(
+                ForumPost,
+                id=parent_id,
+                topic=topic
+            )
         # form = PostCreationForm(request.POST, request.FILES)
         if form.is_valid():
             post = form.save(commit=False)

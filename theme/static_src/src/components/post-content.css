@@ -138,7 +138,7 @@
   }
 
   .post-content ul.todo-list input {
-    @apply mt-1;
+    @apply mt-1 checkbox checkbox-sm checkbox-primary;
   }
 
   /* =========================================================

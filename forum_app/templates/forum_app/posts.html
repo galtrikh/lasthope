@@ -259,8 +259,12 @@
                         {% if post.obj.parent %}
                             <i>Ответ пользователю: <a href="{% url 'user' post.obj.parent.author.username %}" class="link link-hover">{{post.obj.parent.author.profile.displayname}}</a></i>
                             <blockquote class="line-clamp-6">
-                                {{post.obj.parent.content|safe}}
+                                {% if post.parent_meta%}
+                                {{post.parent_meta|safe}}<br/>
+                                {% endif %}
+                                {{post.parent_preview}}
                             </blockquote>
+                            <div class="flex justify-end"><a href="{{post.parent_url}}" class="text-xs link link-hover ml-auto">Перейти к посту</a></div>
                         {% endif %}
                         {{post.obj.content|safe}}
                     </div>
