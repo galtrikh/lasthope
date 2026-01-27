@@ -343,7 +343,8 @@ def posts(request, cat_slug, topic_id):
             post = form.save(commit=False)
             post.topic = topic
             post.author = request.user
-            post.parent = parent
+            if not post.parent:
+                post.parent = parent
             if edit_post:
                 post.edited = True
             post.save()

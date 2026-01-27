@@ -3,24 +3,186 @@
 <!--===========CONTENT=============-->
 
 {% block content %}
-    <div class="w-full flex flex-col-reverse space-y-10 space-y-reverse md:flex-row md:space-y-0 space-x-0 md:justify-end md:p-10 md:space-x-10 md:items-center h-full">
-        <div id="login_tablet" class="fixed top-0 md:flex flex-col w-full h-full z-0 blur-sm">
-            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">АККАУНТ {{user.username}} АККАУНТ {{user.username}} АККАУНТ {{user.username}}</div>
-            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
-            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
-            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">АККАУНТ {{user.username}} АККАУНТ {{user.username}} АККАУНТ {{user.username}}</div>
-            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
-            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
-            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">АККАУНТ {{user.username}} АККАУНТ {{user.username}} АККАУНТ {{user.username}}</div>
-            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
-            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
-            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">АККАУНТ {{user.username}} АККАУНТ {{user.username}} АККАУНТ {{user.username}}</div>
-            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
-            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
-            <div class="text-9xl font-black mt-15 text-nowrap text-sky-500 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">АККАУНТ {{user.username}} АККАУНТ {{user.username}} АККАУНТ {{user.username}}</div>
-            <div class="text-9xl font-black mt-15 text-nowrap text-sky-600 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34 ТЮРЬМА V34</div>
-            <div class="text-9xl font-black mt-15 text-nowrap text-sky-800 leading-11 select-none transform -rotate-15 -translate-y-100 -translate-x-20 uppercase">ПОСЛЕДНЯЯ НАДЕЖДА ПОСЛЕДНЯЯ НАДЕЖДА</div>
+    <div class="p-10 flex space-x-10">
+        <div class="tabs tabs-lift w-full">
+            <label class="tab">
+                <input type="radio" name="profile_tabs" checked="checked"/>
+                <i class="fa-solid fa-comments opacity-50 mr-2"></i>
+                <span>Чаты</span>
+            </label>
+            <div class="tab-content bg-base-100 border-base-300 p-6">
+                Чаты (потом сделаю)
+            </div>
+
+            <label class="tab">
+                <input type="radio" name="profile_tabs"  />
+                <i class="fa-solid fa-user-pen opacity-50 mr-2"></i>
+                Редактировать профиль
+            </label>
+            <div class="tab-content bg-base-100 border-base-300 p-6">
+                <form method="post" enctype="multipart/form-data" class="fieldset">
+                    {% csrf_token %}
+                    <label for="displayname" class="label">Имя пользователя</label>
+                    {{ form.displayname }}
+                    <label for="bio" class="label">О себе</label>
+                    {{ form.bio }}
+                    <label for="avatar" class="label">Аватар</label>
+                    {{ form.avatar }}
+                    <p id="errorMsg" style="color:red;"></p>
+                    {% if can_edit_profile_gropus %}
+                        <label for="displayname" class="label">Роли:</label>
+                        {{ form.groups }}
+                    {% endif %}
+                    {% if edit_user_perms %}
+                        <label for="displayname" class="label">Права:</label>
+                        {{ form.permissions }}
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary mt-4">Сохранить</button>
+                    <script>
+                    const input = document.getElementById('avatar');
+                    const error = document.getElementById('errorMsg');
+                    input.addEventListener('change', () => {
+                        const file = input.files[0];
+                        if (file && file.size > 1024*1024) { // 1MB
+                            error.textContent = 'Файл слишком большой (макс 1MB)';
+                            input.value = ''; // очищаем input
+                        } else {
+                            error.textContent = '';
+                        }
+                    });
+                    </script>
+                </form>
+            </div>
+            {% if is_owner %}
+                <label class="tab">
+                    <input type="radio" name="profile_tabs" />
+                    <i class="fa-solid fa-clock-rotate-left opacity-50 mr-2"></i>
+                    История уведомлений
+                </label>
+                <div class="tab-content bg-base-100 border-base-300 p-6">
+                    <ul class="list">
+                        {% for n in notifications %}
+                            <li class="list-row">
+                                {% if n.actor_type == 'user' %}
+                                    {% if n.type == 'admin' %}
+                                        <strong>{{ n.get_type_display }}</strong><br>
+                                    {% elif n.type == 'other' %}
+                                        <strong>{{ n.get_type_display }}</strong><br>
+                                    {% elif n.type == 'poll_finished' %}
+                                        <strong>{{ n.get_type_display }}</strong><br>
+                                    {% else %}
+                                        <strong>{{ n.get_type_display }} пользователем <a href="{% url 'user' n.actor.username %}" class="link link-hover">{{n.actor.profile.displayname}}</a></strong><br>
+                                    {% endif %}
+                                {% elif n.actor_type == 'system' %}
+                                    <strong>[СИСТЕМА] {{ n.get_type_display }}</strong><br>
+                                {% endif %}
+
+                                {% if n.type == 'post_pinned' %}
+                                    Ваш пост был закреплён в теме "{{n.content_object.topic.title}}"
+                                {% elif n.type == 'post_unpinned' %}
+                                    Ваш пост был откреплен в теме "{{n.content_object.topic.title}}"
+                                {% elif n.type == 'post_edited' %}
+                                    {% if n.content_object and n.content_object.topic %}
+                                    Ваш <a href="{% url 'topic' cat_slug=n.content_object.topic.category.slug topic_id=n.content_object.topic.id %}#post-{{n.content_object.id}}" class="text-sky-700">пост</a> был изменен в теме "{{n.content_object.topic.title}}"
+                                    {% else %}
+                                    Ваш пост был изменен и удален
+                                    {% endif %}
+                                {% elif n.type == 'post_deleted' %}
+                                    <span>Ваш пост</span>
+                                    <div class="list-col-wrap">
+                                        <div class="bg-base-200 p-2 rounded-box italic">{{n.data.content|safe|slice:300}}</div>
+                                        <br> был удалён в теме "{{n.data.topic}}"
+                                    </div>
+                                {% elif n.type == 'topic_deleted' %}
+                                    Тема «{{ n.data.title }}» удалена
+                                {% elif n.type == 'topic_pinned' %}
+                                    Тема «{{ n.content_object.title }}» закреплена
+                                {% elif n.type == 'topic_unpinned' %}
+                                    Тема «{{ n.content_object.title }}» откреплена
+                                {% elif n.type == 'topic_closed' %}
+                                    Тема «{{ n.content_object.title }}» закрыта
+                                {% elif n.type == 'topic_unclosed' %}
+                                    Тема «{{ n.content_object.title }}» открыта
+                                {% elif n.type == 'permission_added' %}
+                                    Вам выданы права: {% for p in n.data.permissions %}<br>"{{ p }}" {% endfor %}
+                                {% elif n.type == 'permission_removed' %}
+                                    У вас отозваны права: {% for p in n.data.permissions %}<br>"{{ p }}" {% endfor %}
+                                {% elif n.type == 'group_added' %}
+                                    Вам выданы роли: {% for g in n.data.groups %}<br>"{{ g }}" {% endfor %}
+                                {% elif n.type == 'group_removed' %}
+                                    У вас отозваны роли: {% for g in n.data.groups %}<br>"{{ g }}" {% endfor %}
+                                {% elif n.type == 'poll_finished' %}
+                                    Голосование "{{n.data.title}}" было окончено. Выбран вариант "{{n.data.winner}}" 
+                                {% elif n.type == 'admin' %}
+                                    {{ n.data.text }}
+                                {% elif n.type == 'other' %}
+                                    {{n.data.data}}
+                                {% elif n.type == 'warning' %}
+                                    {{n.data.reason}}
+                                {% elif n.type == 'moderation_alert' %}
+                                    Нарушение [{{n.data.author}}] id поста - {{n.data.post_id}}
+                                {% endif %}
+
+                                <div class="text-xs text-neutral">
+                                    {{ n.created_at }}
+                                </div>
+                            </li>
+                        {% empty %}
+                            <div class="p-2">Нет уведомлений</div>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            <label class="tab">
+                <input type="radio" name="profile_tabs" />
+                <i class="fa-solid fa-gear opacity-50 mr-2"></i>
+                Действия
+            </label>
+            <div class="tab-content bg-base-100 border-base-300 p-6">
+                Действия с профилем, тоже потом сделаю
+            </div>
         </div>
+        <div class="card w-1/3 bg-base-200">
+            <div class="card-title">
+                <ul class="list">
+                    <li class="list-row">
+                        <div class="avatar w-24 {% if profile.is_online %} avatar-online {% else %} avatar-offline {% endif %}">
+                            <img src="{{profile.avatar.url}}" class="aspect-square rounded-full"/>
+                        </div>
+                        <div>
+                            <p class="text-lg">{{profile.displayname}} [{{profile.servername}}]</p>
+                            {% if groups|length > 0 %}
+                            <ul>
+                                {% for group in groups %}
+                                <li class="badge">{{group}}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                            <p class="text-xs">Имя пользователя: {{profile_user.username}}</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <fieldset class="fieldset bg-base-100 border-base-300 rounded-box w-full border p-4">
+                    <legend class="fieldset-legend">О себе</legend>
+                    <label class="label">
+                        {{profile.bio}}
+                    </label>
+                </fieldset>
+            </div>
+            {% if is_owner %}
+                <div class="card-actions p-4 justify-end">
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button class="btn btn-secondary"><i class="fa-solid fa-right-from-bracket"></i><span>Выйти<span></button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% comment %} <div class="w-full flex flex-col-reverse space-y-10 space-y-reverse md:flex-row md:space-y-0 space-x-0 md:justify-end md:p-10 md:space-x-10 md:items-center h-full">
+       
         <div class="{% if not show_menu %}hidden{% endif %} bg-sky-50 rounded-2xl text-black z-1 p-10 h-full w-full md:w-3/4">{% block data %}{% endblock %}</div>
         <div class="bg-sky-50 rounded-2xl text-black z-1 p-10 h-fit self-start w-full md:w-100 md:min-w-100 flex flex-col items-center">
             <div class="bg-sky-400 w-50 h-50 rounded-full border-2 border-sky-800 overflow-hidden"><img src="{{profile.avatar.url}}" class="w-full h-full object-cover"/></div>
@@ -61,6 +223,6 @@
             {% endif %}
             </ul>
         </div>
-    </div>
+    </div> {% endcomment %}
 {% endblock content %}
     

@@ -192,7 +192,7 @@
                 <div class="text-neutral-content text-2xl font-semibold">Автор темы</div>
             </li>
             <li class="list-row">
-                <div class="avatar avatar-online">
+                <div class="avatar {% if topic.author.profile.is_online %} avatar-online {% else %} avatar-offline {% endif %}">
                     <img src="{{topic.author.profile.avatar.url}}" class="aspect-square size-24 rounded-full"/>
                 </div>
                 <div>
