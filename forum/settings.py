@@ -70,7 +70,7 @@ INSTALLED_APPS = [
     'forum_app',
     'forum_filter',
     'django_ckeditor_5',
-    'unfold',
+    # 'unfold',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

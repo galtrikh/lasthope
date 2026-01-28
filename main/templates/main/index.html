@@ -3,7 +3,7 @@
 <!--===========LOADS=============-->
 <!--===========BLOCKS=============-->
 {% block title %}
-    Главная
+    Главная | LastHope v34
 {% endblock title %}
 
 
@@ -34,88 +34,83 @@
             });
         });
     </script>
-            <div class="w-full flex flex-col md:items-center space-y-7 md:h-full">
-                <div class="w-full z-1 text-black">
-                    {% if not banner.hidden %}
-                    <div class="w-full h-fit p-2 flex items-center justify-center">
-                        <div class="overflow-hidden" style="width: {{banner.width}}%">
-                            <img class="object-cover blur-xl scale-110 w-full progressive" src="{{banner.image_small.url}}" data-src="{{banner.image.url}}"/>
-                        </div>
-                    </div>
-                {% endif %}
-            {% if polls %}
-            <div class="flex items-baseline space-x-5 w-full justify-around p-10 bg-sky-200">
-                {% for poll in polls %}
-                <form method="post" class="space-y-4 bg-sky-50 text-black w-full md:w-100 p-3 pb-6 rounded-4xl">
-                    {% csrf_token %}
-                    <input type="hidden" name="poll_id" value="{{ poll.poll.id }}">
-                    <h3 class="text-lg font-semibold bg-sky-500 p-3 text-center rounded-full">
-                        {{ poll.poll.title }}
-                    </h3>
-                    {% if user.is_authenticated %}
-
-                    {% if poll.can_vote %}
-                        <form method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="poll_id" value="{{ poll.poll.id }}">
-
-                            <div class="space-y-2">
-                                {{ poll.form.options }}
-                            </div>
-
-                            <button
-                                type="submit"
-                                class="mt-3 bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-full cursor-pointer"
-                            >
-                                Голосовать
-                            </button>
-                        </form>
-
-                    {% else %}
-                        <div class="space-y-3">
-                            {% for item in poll.items %}
-                                <div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="{% if item.is_winner %} bg-sky-500 text-sky-50 rounded-full px-2 {% endif %}">{{ item.text }}</span>
-                                        <span>{{ item.percent }}%</span>
-                                    </div>
-
-                                    <div class="bg-sky-200 w-full h-2 rounded-full mt-1">
-                                        <div
-                                            class="h-full rounded-full {% if item.is_winner %} bg-sky-800 {% else %} bg-sky-500 {% endif %}"
-                                            style="width: {{ item.percent }}%;"
-                                        ></div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                {% else %}
-                    <div class="space-y-2">
-                        Чтобы голосовать, необходимо
-                        <a href="{% url 'login' %}" class="text-sky-700 underline">войти</a>
-                    </div>
-                {% endif %}
-                </form>
-                {% endfor %}
+    <div class="hero min-h-screen -mt-17 relative z-0" style="background-image: url({{banner.image.url}})">
+        <div class="hero-overlay"></div>
+        <div class="hero-content text-neutral-content text-center">
+            <div class="max-w-md">
+                <h1 class="mb-5 text-5xl font-bold flex justify-center">LastHope <span class="text-secondary text-lg self-start">v34</span></h1>
+                <p class="mb-5">
+                    Добро пожаловать на форум сервера «Последняя надежда» в Counter-Strike:Source v34. 
+                    Тут ты найдешь много полезной информации и сможешь весело провести время.
+                </p>
+                <a href="{% url 'forum' %}" class="btn btn-primary">К общению</a>
             </div>
-            {% endif %}
-            {% if rules %}
-                <div class="md:p-10">
-                    <div class="bg-sky-50 p-4 md:rounded-lg">
-                        <p class="font-bold text-2xl p-4 pt-0 mb-4 text-sky-950">Общие правила игры на сервере</p>
-                        <ol class="pl-12 space-y-2 list-outside list-decimal">
-                        {% for rule in rules%}
-                            <li class="md:font-bold md:text-lg list-item">{{rule.text}}</li>
-                        {% endfor %}
-                        </ol>
-                    </div>
-                </div>
-            {% endif %}
         </div>
-        
+        <div class="absolute bottom-0"><i class="fa-solid fa-angles-down text-5xl opacity-50 animate-bounce text-secondary"></i></div>
     </div>
+    <div class="p-10 flex space-x-10">
+        <div class="w-full bg-base-200 card">
+            <h2 class="card-title p-5">Топ лучших участников форума</h2>
+            <ul class="card-body list">
+                <li class="list-row">
+
+                </li>
+            </ul>
+        </div>
+        {% if polls %}
+        <ul class="list w-1/3">
+            {% for poll in polls %}
+                <li class="list-row flex">
+                    <div class="card bg-base-200 w-full">
+                        <div class="card-title p-4">{{poll.poll.title}}</div>
+                        <div class="card-body">
+                            {% if user.is_authenticated %}
+                                {% if poll.can_vote %}
+                                    <form method="post" class="fieldset space-y-2">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="poll_id" value="{{ poll.poll.id }}">
+                                        {% for option in poll.form.options %}
+                                            <label class="label cursor-pointer gap-3">
+                                                {{ option.tag }}
+                                                {{option.choice_label}}
+                                            </label>     
+                                        {% endfor %}
+                                        <button class="btn btn-neutral mt-4">Голосовать</button>
+                                    </form>
+                                {% else %}
+                                    {% for item in poll.items %}
+                                        <div class="fieldset">
+                                            <label class="flex justify-between text-sm label">
+                                                <span class="{% if item.is_winner %} badge badge-primary {% endif %}">{{ item.text }}</span>
+                                                <span>{{ item.percent }}%</span>
+                                            </label>
+
+                                            <progress class="progress progress-primary" value="{{item.percent}}" max="100"></progress>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% else %}
+                                <p><a href="{% url 'login' %}" class="link link-hover text-secondary">Войди</a> чтобы принять участие в голосовании</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    {% if rules %}
+        <div class="p-10">
+            <div class="card bg-base-200">
+                <p class="card-title p-5">Правила форума</p>
+                <ol class="card-body list">
+                {% for rule in rules%}
+                    <li class="list-row">{{rule.text}}</li>
+                {% endfor %}
+                </ol>
+            </div>
+        </div>
+    {% endif %}
 
 {% endblock content %}
     

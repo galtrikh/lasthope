@@ -17,12 +17,12 @@ class VoteForm(forms.Form):
         if poll.multiple:
             self.fields['options'] = forms.MultipleChoiceField(
                 choices=choices,
-                widget=forms.CheckboxSelectMultiple,
+                widget=forms.CheckboxSelectMultiple(),
                 required=True,
             )
         else:
             self.fields['options'] = forms.ChoiceField(
                 choices=choices,
-                widget=forms.RadioSelect,
+                widget=forms.RadioSelect(attrs={'class':'checkbox checkbox-sm checkbox-primary'}),
                 required=True,
             )
