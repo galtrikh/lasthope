@@ -1,0 +1,33 @@
+{% extends 'layouts/main.html' %}
+
+<!--===========LOADS=============-->
+<!--===========BLOCKS=============-->
+{% block title %}
+    Главная | LastHope v34
+{% endblock title %}
+
+
+{% block description %}
+    Главная страница сайта-форума для сервера "ТЮРЬМА ПОСЛЕДНЯЯ НАДЕЖДА v34" в игре Counter Strike: Source v34 (12+)
+{% endblock description %}
+    
+
+{% block keywords %}
+    CSS, CSSV34, jail, last hope, last hope v34, последняя, надежда, последняя надежда, v34, V34, тюрьма, Counter Strike, cs, CS, Source, Counter-Strike, Counter-Strike:Source
+{% endblock keywords %}
+    
+<!--===========CONTENT=============-->
+
+{% block content %}
+    <div class="hero min-h-screen -mt-18">
+        <div class="hero-content text-center">
+            <div class="max-w-4xl">
+                <div class="text-9xl flex flex-wrap justify-center"><i class="fa-solid fa-4"></i><i class="fa-solid fa-0"></i><i class="fa-solid fa-4"></i><i class="fa-regular fa-face-frown"></i></div>
+                <p class="p-10">Похоже что такой страницы нет</p>
+                <a href="{% url 'main' %}" class="btn btn-primary">На главную</a>
+            <div>
+        </div>
+    </div>
+
+{% endblock content %}
+    

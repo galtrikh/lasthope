@@ -9,6 +9,9 @@ from core.models import FooterInfo
 
 # Create your views here.
 
+def e404(requset):
+    return render(requset, '404.html', status=404)
+
 def index(request):
     banner = MainBanner.objects.all().first()
     polls = VoteBox.objects.filter(closed=False)

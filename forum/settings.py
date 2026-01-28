@@ -53,7 +53,7 @@ MAINTENANCE_MODE = True
 #     #'95.110.85.15' #user
 #     ]
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')   
 
 
 # Application definition
