@@ -4,6 +4,7 @@
 {% endblock%}
 
 {% block layout_content %}
+    {% load static %}
     <div id="app" class="flex flex-col min-h-screen">
         <header class="navbar shadow-sm bg-base-100 z-1">
             <div class="navbar-start">
@@ -39,7 +40,9 @@
                     </div>
                     <div class="indicator indicator-start">
                         <span class="indicator-item badge badge-sm badge-primary -rotate-12">BETA</span>
-                        <a href="{% url 'main' %}" class="cursor-pointer text-xl flex items-start font-bold"><span class="font-bold">LastHope</span> <span class="text-xs text-secondary">v34</span></a>
+                        <a href="{% url 'main' %}" class="cursor-pointer text-xl flex items-start font-bold">
+                            <img src="{% static 'logo.svg' %}" alt="LastHope v34" class="w-35"/>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -180,7 +183,7 @@
                 <p>Copyright © {% now 'Y' %} - Все права защищены</p>
             </aside>
         </footer>
-        <div class="lg:hidden dock dock-sm">
+        {% comment %} <div class="lg:hidden dock dock-sm">
             <button>    
                <i class="fa-solid fa-comments"></i>
             </button>
@@ -196,8 +199,8 @@
             <button>
                 <i class="fa-solid fa-ellipsis"></i>
             </button>
-        </div>
-         <div class="fab right-15 bottom-10"
+        </div> {% endcomment %}
+         {% comment %} <div class="fab right-15 bottom-10"
         x-cloak
         x-data="{show:false}"
         x-show="show"
@@ -206,7 +209,7 @@
             <button class="btn btn-lg btn-circle btn-primary" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
                 <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M342.6 105.4C330.1 92.9 309.8 92.9 297.3 105.4L137.3 265.4C124.8 277.9 124.8 298.2 137.3 310.7C149.8 323.2 170.1 323.2 182.6 310.7L320 173.3L457.4 310.6C469.9 323.1 490.2 323.1 502.7 310.6C515.2 298.1 515.2 277.8 502.7 265.3L342.7 105.3zM502.6 457.4L342.6 297.4C330.1 284.9 309.8 284.9 297.3 297.4L137.3 457.4C124.8 469.9 124.8 490.2 137.3 502.7C149.8 515.2 170.1 515.2 182.6 502.7L320 365.3L457.4 502.6C469.9 515.1 490.2 515.1 502.7 502.6C515.2 490.1 515.2 469.8 502.7 457.3z"/></svg>
             </button>
-        </div>
+        </div> {% endcomment %}
         {% comment %} <footer class="
         bg-transparent
         text-white

@@ -5,15 +5,25 @@
 {% block content %}
     <div class="p-10 flex space-x-10">
         <div class="tabs tabs-lift w-full">
-            <label class="tab">
-                <input type="radio" name="profile_tabs" checked="checked"/>
-                <i class="fa-solid fa-comments opacity-50 mr-2"></i>
-                <span>Чаты</span>
-            </label>
-            <div class="tab-content bg-base-100 border-base-300 p-6">
-                Чаты (потом сделаю)
-            </div>
-
+            {% if is_owner %}
+                <label class="tab">
+                    <input type="radio" name="profile_tabs" checked="checked"/>
+                    <i class="fa-solid fa-comments opacity-50 mr-2"></i>
+                    <span>Чаты</span>
+                </label>
+                <div class="tab-content bg-base-100 border-base-300 p-6">
+                    Чаты (потом сделаю)
+                </div>
+            {% else %}
+                <label class="tab">
+                    <input type="radio" name="profile_tabs" checked="checked"/>
+                    <i class="fa-solid fa-comment opacity-50 mr-2"></i>
+                    <span>Чат</span>
+                </label>
+                <div class="tab-content bg-base-100 border-base-300 p-6">
+                    Чат
+                </div>
+            {% endif %}
             <label class="tab">
                 <input type="radio" name="profile_tabs"  />
                 <i class="fa-solid fa-user-pen opacity-50 mr-2"></i>
@@ -26,12 +36,18 @@
                     {{ form.displayname }}
                     <label for="bio" class="label">О себе</label>
                     {{ form.bio }}
-                    <label for="avatar" class="label">Аватар</label>
-                    {{ form.avatar }}
-                    <p id="errorMsg" style="color:red;"></p>
-                    {% if can_edit_profile_gropus %}
-                        <label for="displayname" class="label">Роли:</label>
-                        {{ form.groups }}
+                    <fieldset class="fieldset">
+                        <legend class="fieldset-legend">Аватар</legend>
+                        {{form.avatar}}
+                        <label class="label">Максимальный размер 1MB</label>
+                    </fieldset>
+                    <p id="errorMsg" class="text-error"></p>
+                    {% if can_edit_profile_groups %}
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Роли:</legend>
+                            {{form.groups}}
+                            
+                        </fieldset>
                     {% endif %}
                     {% if edit_user_perms %}
                         <label for="displayname" class="label">Права:</label>

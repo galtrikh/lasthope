@@ -1,0 +1,54 @@
+{% load static %}
+{% load forum_filters %}
+
+{# ══════════════════════════════════════════════════════════════════════ #}
+{# Partial: подгрузка постов через HTMX (cursor pagination)              #}
+{# Возвращает: сентинель + посты + (опционально) новый сентинель         #}
+{# ══════════════════════════════════════════════════════════════════════ #}
+
+{# Сентинель старых — удаляем себя после загрузки #}
+{% if has_older %}
+<li
+  id="sentinel-older"
+  hx-get="{% url 'topic' category.slug topic.id %}?before={{ min_id }}"
+  hx-trigger="intersect once"
+  hx-target="#sentinel-older"
+  hx-swap="outerHTML"
+>
+  <div class="load-sentinel">
+    <span class="loading loading-spinner loading-xs"></span>
+  </div>
+</li>
+{% endif %}
+
+{# ── Посты ── #}
+{% for post in posts %}
+  {% include "forum_app/forum_post.html" with post=post category=category topic=topic flags=flags %}
+{% endfor %}
+
+{# ── Сентинель для загрузки ещё более новых ── #}
+{% if has_newer %}
+<li
+  id="sentinel-newer"
+  class="load-sentinel"
+  hx-get="{% url 'topic' category.slug topic.id %}?after={{ max_id }}"
+  hx-trigger="intersect once"
+  hx-target="#posts-list"
+  hx-swap="beforeend"
+  hx-indicator="#load-newer-spin"
+>
+  <span id="load-newer-spin" class="htmx-indicator loading loading-spinner loading-xs"></span>
+  <span class="text-xs">Загрузка новых постов…</span>
+</li>
+{% endif %}
+
+{# Инициализируем Alpine для новых постов #}
+<script>
+  /* После вставки — Alpine подхватывает автоматически через MutationObserver.
+     Но на случай если нужен ручной триггер: */
+  if (typeof Alpine !== 'undefined') {
+    document.querySelectorAll('[data-post-id]:not([x-init-done])').forEach(el => {
+      el.setAttribute('x-init-done', '1');
+    });
+  }
+</script>

@@ -1,27 +1,328 @@
-<form method="post" x-ref="editorForm" class="px-10 mb-5 w-full">
-    {% csrf_token %}
-    {{ form.content }}
-    <input type="hidden" name="parent_id" x-model="replyTo" x-if="open">
-    <div class="text-sm text-secondary py-5">Перед тем как что-то написать на форуме внимательно прочитай правила</div>
-    <div class="mt-2 flex gap-2">
-        <button class="btn btn-primary" type="submit" x-show="!open_edit">Отправить</button>
-        <button class="btn btn-primary" type="submit" x-show="open_edit">Изменить</button>
-        <a
-            href="{% url 'topic' category.slug topic.id %}?page={{posts.number}}"
-            type="button"
-            class="btn btn-ghost"
-            x-show="open_edit"
-            @click="open_edit = false"
-        >
-            Отмена
-        </a>
-        <button
-            type="button"
-            class="btn btn-ghost"
-            x-show="open"
-            @click="closeReply()"
-        >
-            Отмена
-        </button>
+{% load static %}{% load forum_filters %}
+
+{% if user.is_authenticated and flags.can_post %}
+{% if not topic.closed or flags.can_post_closed %}
+<style>
+/* === Нижняя панель === */
+#editor-bar{position:fixed;bottom:3rem;z-index:60;
+  background:var(--color-base-200);
+  box-shadow:0 -2px 20px oklch(0 0 0/.1);
+  {% comment %} padding-bottom:env(safe-area-inset-bottom,0px); {% endcomment %}
+  transition:transform .3s cubic-bezier(.16,1,.3,1);}
+#editor-bar.edit-hidden{transform:translateY(110%);pointer-events:none;}
+
+/* Свёрнутый */
+#editor-collapsed{display:flex;align-items:center;gap:.6rem;padding:.55rem .85rem;cursor:text;
+  transition:background .15s;}
+#editor-collapsed:hover{background:var(--color-base-300);}
+.ed-fake-input{flex:1;background:var(--color-base-100);border:1px solid var(--color-base-100);
+  border-radius:9999px;padding:.4rem 1rem;font-size:.875rem;
+  color:var(--color-base-content);pointer-events:none;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#editor-collapsed:hover .ed-fake-input{border-color:var(--color-primary);}
+.ed-avatar{width:2rem;height:2rem;border-radius:50%;object-fit:cover;opacity:.7;flex-shrink:0;}
+
+/* Развёрнутый */
+#editor-expanded{display:none;flex-direction:column;}
+#editor-expanded.show{display:flex;}
+
+/* Контекст-бар reply */
+.ed-ctx{display:none;align-items:center;gap:.5rem;padding:.35rem 1rem;
+  font-size:.8rem;font-weight:600;
+  background:var(--color-primary);border-bottom:1px solid var(--color-primary);color:var(--color-primary);}
+.ed-ctx.show{display:flex;}
+
+/* Заголовок */
+.ed-head{display:flex;align-items:center;justify-content:space-between;
+  padding:.35rem .75rem .35rem 1rem;}
+.ed-head-title{font-size:.75rem;font-weight:700;opacity:.45;text-transform:uppercase;letter-spacing:.05em;}
+
+/* CKEditor в панели */
+#editor-bar .ck-editor__editable{min-height:110px;max-height:36vh;overflow-y:auto;
+  border-radius:0!important;border-left:none!important;border-right:none!important;}
+#editor-bar .ck.ck-toolbar{border-radius:0!important;border:none!important;}
+#editor-bar .ck.ck-editor{border:none!important;box-shadow:none!important;}
+
+
+/* Футер */
+.ed-foot{display:flex;align-items:center;gap:.5rem;padding:.45rem .75rem;background:var(--color-base-200);}
+.ed-hint{font-size:.72rem;opacity:.3;margin-left:auto;}
+
+/* === Inline-placeholder при edit === */
+.post-edit-placeholder{display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:.5rem;min-height:4.5rem;padding:1rem;border-radius:.6rem;
+  border:2px dashed oklch(var(--color-primary)/.3);background:oklch(var(--color-primary)/.03);
+  color:oklch(var(--color-primary)/.55);font-size:.82rem;text-align:center;}
+.is-editing .post-edit-placeholder{display:flex;}
+.is-editing .post-content-body{display:none!important;}
+
+/* Отступ страницы */
+{% comment %} main{padding-bottom:3.5rem;transition:padding-bottom .3s;} {% endcomment %}
+{% comment %} main.ed-open{padding-bottom:min(52vh,480px);} {% endcomment %}
+</style>
+
+{# === ПАНЕЛЬ === #}
+<div id="editor-bar" class="w-full xl:w-7xl rounded-box left-1/2 -translate-x-1/2">
+
+  {# Свёрнутый вид — кликабельная строка #}
+  <div id="editor-collapsed" onclick="edExpand()" role="button" tabindex="0"
+       onkeydown="if(event.key==='Enter'||event.key===' ')edExpand()">
+    {% if user.profile.avatar %}
+      <img src="{{ user.profile.avatar.url }}" class="ed-avatar" alt="">
+    {% endif %}
+    <div class="ed-fake-input" id="ed-ph-txt">Написать в тему…</div>
+    <div class="btn btn-primary btn-sm rounded-full gap-1.5 pointer-events-none" aria-hidden="true">
+      <i class="fa-solid fa-pen text-sm"></i>
+      <span class="text-sm">Написать</span>
     </div>
-</form>
+  </div>
+
+  {# Развёрнутый вид #}
+  <div id="editor-expanded">
+
+    {# Контекст reply #}
+    <div class="ed-ctx" id="ed-ctx">
+      <i class="fa-solid fa-reply shrink-0"></i>
+      <span id="ed-ctx-txt">Ответ</span>
+      <button class="btn btn-ghost btn-xs ml-auto" onclick="edCancelCtx()">
+        <i class="fa-solid fa-xmark"></i> Отмена
+      </button>
+    </div>
+
+    {# Заголовок #}
+    <div class="ed-head">
+      <span class="ed-head-title" id="ed-title">Новое сообщение</span>
+      <button class="btn btn-ghost btn-xs btn-square" onclick="edCollapse()" title="Свернуть">
+        <i class="fa-solid fa-chevron-down text-sm"></i>
+      </button>
+    </div>
+
+    {# Форма #}
+    <form id="ed-form" method="post" action="{% url 'topic' category.slug topic.id %}"
+          enctype="multipart/form-data" onsubmit="return edSubmit(event,this)">
+      {% csrf_token %}
+      <input type="hidden" name="parent_id"    id="ed-parent-id"   value="">
+      <input type="hidden" name="edit_post_id" id="ed-edit-id"     value="">
+
+      {# CKEditor всегда в DOM — не прятать через x-if или display:none #}
+      <div id="ed-ck-wrap">{{ form.content }}</div>
+
+      <div class="ed-foot">
+        <button type="submit" class="btn btn-primary btn-sm gap-1.5" id="ed-submit-btn">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span id="ed-submit-lbl">Отправить</span>
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="edCollapse()">Отмена</button>
+        <span class="ed-hint">Будь вежлив · Читай правила</span>
+      </div>
+    </form>
+  </div>
+
+</div>{# /editor-bar #}
+
+<script>
+/* ─── Состояние ─── */
+const ED = {
+  open:false, mode:'new',
+  replyTo:null, replyAuthor:'',
+  editPostId:null, editPostEl:null,
+  /* DOM refs — заполним после DOMContentLoaded */
+  $bar:null,$col:null,$exp:null,
+  $ctx:null,$ctxTxt:null,$title:null,
+  $submitLbl:null,$parentId:null,$editId:null,$phTxt:null,
+};
+document.addEventListener('DOMContentLoaded', () => {
+  ED.$bar      = document.getElementById('editor-bar');
+  ED.$col      = document.getElementById('editor-collapsed');
+  ED.$exp      = document.getElementById('editor-expanded');
+  ED.$ctx      = document.getElementById('ed-ctx');
+  ED.$ctxTxt   = document.getElementById('ed-ctx-txt');
+  ED.$title    = document.getElementById('ed-title');
+  ED.$submitLbl= document.getElementById('ed-submit-lbl');
+  ED.$parentId = document.getElementById('ed-parent-id');
+  ED.$editId   = document.getElementById('ed-edit-id');
+  ED.$phTxt    = document.getElementById('ed-ph-txt');
+});
+
+/* ─── Раскрытие / сворачивание ─── */
+function edExpand() {
+  if (ED.open) return;
+  ED.open = true;
+  ED.$col.style.display = 'none';
+  ED.$exp.classList.add('show');
+  document.body.classList.add('ed-open');
+  _edFocus();
+}
+function edCollapse() {
+  if (ED.mode === 'edit') { edCancelEdit(); return; }
+  ED.open = false;
+  _edResetCtx();
+  ED.$col.style.display = '';
+  ED.$exp.classList.remove('show');
+  document.body.classList.remove('ed-open');
+}
+
+/* ─── Режим: новый пост ─── */
+function edOpenNew() { _edResetCtx(); edExpand(); }
+
+/* ─── Режим: ответ ─── */
+function openReplyForm(postId, authorName) {
+  _edResetCtx();
+  ED.mode='reply'; ED.replyTo=postId; ED.replyAuthor=authorName;
+  ED.$parentId.value = postId;
+  ED.$ctxTxt.textContent = `Ответ для ${authorName}`;
+  ED.$ctx.classList.add('show');
+  ED.$title.textContent = 'Ответ';
+  ED.$submitLbl.textContent = 'Ответить';
+  if (ED.$phTxt) ED.$phTxt.textContent = `Ответить ${authorName}…`;
+  edExpand();
+}
+
+/* ─── Режим: редактирование поста ─── */
+function openEditForm(postId, catSlug, topicId) {
+  const postEl  = document.getElementById(`post-id-${postId}`);
+  const rawHtml = postEl?.querySelector('.post-content-body')?.innerHTML?.trim() || '';
+
+  ED.mode='edit'; ED.editPostId=postId; ED.editPostEl=postEl;
+
+  /* Панель снизу уходит */
+  ED.$bar.classList.add('edit-hidden');
+  ED.open=false; ED.$col.style.display=''; ED.$exp.classList.remove('show');
+  document.body.classList.remove('ed-open');
+
+  /* Показываем placeholder в посте */
+  if (postEl) {
+    postEl.classList.add('is-editing');
+    const ph = postEl.querySelector('.post-edit-placeholder');
+    if (ph) ph.innerHTML = `
+      <div class="flex items-center gap-2 font-medium text-sm">
+        <i class="fa-solid fa-pencil animate-pulse"></i> Редактируется…
+      </div>
+      <div class="flex gap-2 mt-2">
+        <button type="button" class="btn btn-primary btn-xs gap-1"
+          onclick="_edActivate(${postId},'${_esc(catSlug)}',${topicId})">
+          <i class="fa-solid fa-pen-to-square"></i> Открыть редактор
+        </button>
+        <button type="button" class="btn btn-ghost btn-xs" onclick="edCancelEdit()">Отмена</button>
+      </div>`;
+    setTimeout(()=>postEl.scrollIntoView({behavior:'smooth',block:'center'}),50);
+  }
+
+  /* Настраиваем форму */
+  ED.$editId.value = postId;
+  document.getElementById('ed-form').action = `/forum/category/${catSlug}/${topicId}/${postId}/post/save_edit/`;
+  ED.$title.textContent = `Редактирование #${postId}`;
+  ED.$submitLbl.textContent = 'Сохранить';
+  ED.$ctx.classList.remove('show');
+  _edSetContent(rawHtml);
+}
+
+/* Выдвигает панель в режиме edit */
+function _edActivate() {
+  ED.$bar.classList.remove('edit-hidden');
+  ED.$col.style.display='none'; ED.$exp.classList.add('show');
+  document.body.classList.add('ed-open'); ED.open=true;
+  _edFocus();
+}
+
+/* ─── Отмена редактирования ─── */
+function edCancelEdit() {
+  if (ED.editPostEl) { ED.editPostEl.classList.remove('is-editing'); ED.editPostEl=null; }
+  ED.$editId.value='';
+  document.getElementById('ed-form').action='{{ request.path }}';
+  _edSetContent('');
+  ED.mode='new'; ED.editPostId=null;
+  ED.$bar.classList.remove('edit-hidden');
+  _edResetCtx();
+  ED.open=false; ED.$col.style.display='';
+  ED.$exp.classList.remove('show'); document.body.classList.remove('ed-open');
+}
+
+/* ─── Сброс контекста reply ─── */
+function edCancelCtx() { _edResetCtx(); }
+function _edResetCtx() {
+  ED.mode='new'; ED.replyTo=null; ED.replyAuthor='';
+  if(ED.$parentId) ED.$parentId.value='';
+  if(ED.$ctx)      ED.$ctx.classList.remove('show');
+  if(ED.$title)    ED.$title.textContent='Новое сообщение';
+  if(ED.$submitLbl)ED.$submitLbl.textContent='Отправить';
+  if(ED.$phTxt)    ED.$phTxt.textContent='Написать в тему…';
+}
+
+/* ─── Отправка ─── */
+async function edSubmit(e, form) {
+  e.preventDefault();
+  const content = _edGetContent();
+  if (!content || content.replace(/<[^>]+>/g,'').trim()==='') {
+    _edToast('Нельзя отправить пустое сообщение','warning'); return false;
+  }
+  /* Синхронизируем textarea */
+  let ta = form.querySelector('textarea[name="content"]');
+  if (!ta) { ta=Object.assign(document.createElement('textarea'),{name:'content'}); ta.style.display='none'; form.appendChild(ta); }
+  ta.value = content;
+
+  const btn = document.getElementById('ed-submit-btn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="loading loading-spinner loading-xs"></span> Отправка…';
+
+  try {
+    const resp = await fetch(form.action, {
+      method:'POST',
+      headers:{'X-CSRFToken':_edCsrf(),'HX-Request':'true'},
+      body: new FormData(form),
+    });
+    if (!resp.ok){ _edToast(`Ошибка ${resp.status}`,'error'); console.error(await resp.text()); return false; }
+    const html = await resp.text();
+
+    if (ED.mode==='edit') {
+      const body = ED.editPostEl?.querySelector('.post-content-body');
+      if (body && html.trim()) body.innerHTML = html;
+      const art = ED.editPostEl?.querySelector('article');
+      if (art){ art.style.outline='2px solid oklch(var(--p))'; setTimeout(()=>art.style.outline='',1800); }
+      edCancelEdit();
+    } else {
+      const list = document.getElementById('posts-list');
+      if (list && html.trim()){
+        const tmp=document.createElement('ul'); tmp.innerHTML=html;
+        const items=[...tmp.children];
+        items.forEach(item=>{ item.classList.add('post-enter'); list.appendChild(item); if(typeof Alpine!=='undefined') Alpine.initTree(item); });
+        setTimeout(()=>items[items.length-1]?.scrollIntoView({behavior:'smooth',block:'end'}),80);
+      }
+      _edSetContent(''); edCollapse();
+    }
+  } catch(err){
+    console.error('[Editor]',err); _edToast('Ошибка соединения','error');
+  } finally {
+    btn.disabled=false;
+    btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> <span id="ed-submit-lbl">'+ED.$submitLbl?.textContent+'</span>';
+  }
+  return false;
+}
+
+/* ─── CKEditor ─── */
+function _edCk(){ try{const i=Object.values(window.CKEDITOR_5_instances||{});return i.length?i[i.length-1]:null;}catch{return null;} }
+function _edGetContent(){ const ck=_edCk(); if(ck) return ck.getData(); return document.querySelector('#ed-form textarea[name="content"]')?.value||''; }
+function _edSetContent(html){ const t=(n=0)=>{const ck=_edCk();if(ck){try{ck.setData(html||'');return;}catch{}}const ta=document.querySelector('#ed-form textarea[name="content"]');if(ta){ta.value=html||'';return;}if(n<12)setTimeout(()=>t(n+1),100);};t(); }
+function _edFocus(){ setTimeout(()=>{try{const ck=_edCk();if(ck){ck.editing.view.focus();return;}(document.querySelector('#ed-form .ck-editor__editable')||document.querySelector('#ed-form textarea'))?.focus();}catch{}},360); }
+
+/* ─── Утилиты ─── */
+function _edCsrf(){return document.querySelector('[name=csrfmiddlewaretoken]')?.value||document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1]||'';}
+function _esc(s){return String(s).replace(/'/g,"\\'");}
+function _edToast(msg,type='info'){const t=document.createElement('div');t.className='toast toast-top toast-center z-[9999]';t.innerHTML=`<div class="alert alert-${type} shadow text-sm"><span>${msg}</span></div>`;document.body.appendChild(t);setTimeout(()=>t.remove(),3500);}
+
+/* ─── Alpine store (совместимость с WS) ─── */
+document.addEventListener('alpine:init',()=>{
+    Alpine.store('editor', {
+    openNew:    ()         => edOpenNew(),
+    openReply:  (id, name) => openReplyForm(id, name),   // прямой вызов
+    openEdit:   (id,cs,tid)=> openEditForm(id, cs, tid),
+    cancelEdit: ()         => edCancelEdit(),
+    close:      ()         => edCollapse(),
+    });
+});
+
+/* ─── События ─── */
+{% comment %} window.addEventListener('open-reply',e=>openReplyForm(e.detail.postId,e.detail.author));
+window.addEventListener('open-edit', e=>openEditForm(e.detail.postId,e.detail.catSlug,e.detail.topicId)); {% endcomment %}
+</script>
+{% endif %}{% endif %}

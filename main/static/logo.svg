@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="80" viewBox="0 0 300 80" role="img" aria-label="LastHope v34">
+  <style>
+    /* Основные стили, имитирующие Tailwind классы font-bold, sans-serif, select-none */
+    .text-base {
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-weight: 700; /* font-bold */
+      user-select: none; /* select-none */
+    }
+
+    /* Основной цвет текста: oklch(82.901% .031 222.959) */
+    /* Размер имитирует text-5xl */
+    .text-main {
+      fill: oklch(82.901% 0.031 222.959);
+      font-size: 48px;
+    }
+
+    /* Второстепенный цвет: oklch(73.375% .165 35.353) */
+    /* Размер имитирует text-lg */
+    .text-secondary {
+      fill: oklch(73.375% 0.165 35.353);
+      font-size: 18px;
+    }
+  </style>
+
+  <text x="50%" y="55%" class="text-base" dominant-baseline="middle" text-anchor="middle">
+    <tspan class="text-main">LastHope</tspan>
+    <tspan class="text-secondary" dx="-5" dy="-5">v34</tspan>
+  </text>
+</svg>

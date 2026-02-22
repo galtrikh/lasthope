@@ -71,12 +71,24 @@ def user(request, username):
     is_owner = request.user == profile_user
     see_full_profile = request.user.has_perm('user.see_full_profile') and not profile_user.has_perm('user.safety')
     edit_profile = request.user.has_perm('user.edit_profile') and not profile_user.has_perm('user.safety')
+    edit_user_perms = request.user.has_perm('user.edit_user_perms') and (not profile_user.has_perm('user.safety') or is_owner)
+    can_edit_profile_groups = request.user.has_perm('user.can_edit_profile_gropus') and (not profile_user.has_perm('user.safety') or is_owner )
+    if request.method == 'POST':
+        form = EditForm(request.POST, request.FILES, instance=profile_user.profile, user=profile_user)
+        if form.is_valid():
+            form.save()
+            return redirect('user', username=profile_user.username or request.user.username)
+    else:
+        form = EditForm(instance=profile_user.profile, user=profile_user)
     data = {
+        'form': form,
         'profile_user' : profile_user,
         'profile': profile_user.profile,
         'groups': profile_user.groups.all(),
         'is_owner': is_owner,
         'see_full_profile' : see_full_profile,
+        'edit_user_perms': edit_user_perms,
+        'can_edit_profile_groups': can_edit_profile_groups,
         'edit_profile': edit_profile,
         'show_menu' : False
     }

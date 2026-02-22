@@ -59,13 +59,17 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
     'tailwind',
     'theme',
-    'main',
+    # 'main',
     'news',
     'axes',
     'notification',
     'core',
+    'rtchat',
+    'django_htmx',
     'user.apps.UserConfig',
     'forum_app',
     'forum_filter',
@@ -77,8 +81,29 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'guardian',
+    'main.apps.MainConfig'
 ]
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'errors.log',
+        },
+    },
+    'loggers': {
+        'main': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
 
 # if DEBUG:
 #     INSTALLED_APPS += ["django_browser_reload"]
@@ -87,6 +112,7 @@ MIDDLEWARE = [
     'axes.middleware.AxesMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -397,7 +423,10 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'forum.wsgi.application'
+# WSGI_APPLICATION = 'forum.wsgi.application'
+ASGI_APPLICATION = 'forum.asgi.application'
+
+CHANNEL_LAYERS = {'default': {'BACKEND': 'channels.layers.InMemoryChannelLayer'}}
 
 TAILWIND_APP_NAME = 'theme'
 if os.name == 'nt':

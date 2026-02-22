@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django_ckeditor_5.fields import CKEditor5Field
 from django.contrib.auth.models import User
+from .templatetags import forum_filters
 from django.urls import reverse
 # Create your models here.
 
@@ -148,6 +149,10 @@ class ForumPost(models.Model):
     @property
     def popularity_percent(self):
         return round((self.likes.count() * 100) / User.objects.all().count())
+
+    @property
+    def rendered_content(self):
+        return forum_filters.safe_html(self.content)
 
     def get_absolute_url(self):
         return reverse(

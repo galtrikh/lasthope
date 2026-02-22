@@ -1,116 +1,452 @@
 {% extends 'layouts/main.html' %}
+{% load static %}
 
-<!--===========LOADS=============-->
-<!--===========BLOCKS=============-->
-{% block title %}
-    Главная | LastHope v34
-{% endblock title %}
-
-
-{% block description %}
-    Главная страница сайта-форума для сервера "ТЮРЬМА ПОСЛЕДНЯЯ НАДЕЖДА v34" в игре Counter Strike: Source v34 (12+)
-{% endblock description %}
-    
-
-{% block keywords %}
-    CSS, CSSV34, jail, last hope, last hope v34, последняя, надежда, последняя надежда, v34, V34, тюрьма, Counter Strike, cs, CS, Source, Counter-Strike, Counter-Strike:Source
-{% endblock keywords %}
-    
-<!--===========CONTENT=============-->
+{% block title %}Главная | LastHope v34{% endblock title %}
+{% block description %}Главная страница сайта-форума для сервера "ТЮРЬМА ПОСЛЕДНЯЯ НАДЕЖДА v34" в игре Counter Strike: Source v34 (12+){% endblock description %}
+{% block keywords %}CSS, CSSV34, jail, last hope, last hope v34, последняя, надежда, последняя надежда, v34, V34, тюрьма, Counter Strike, cs, CS, Source, Counter-Strike, Counter-Strike:Source{% endblock keywords %}
 
 {% block content %}
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-        const imgs = document.querySelectorAll("img.progressive");
-        imgs.forEach(img => {
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Progressive images
+        document.querySelectorAll("img.progressive").forEach(img => {
             const full = img.dataset.src;
-            const tmp = new Image();
-            tmp.onload = () => {
-                img.src = full;
-                img.classList.remove('blur-xl');
-                img.classList.remove('scale-110');
-            };
+            const tmp  = new Image();
+            tmp.onload = () => { img.src = full; img.classList.remove('blur-xl', 'scale-110'); };
             tmp.src = full;
-            });
         });
-    </script>
-    <div class="hero min-h-screen -mt-17 relative z-0" style="background-image: url({{banner.image.url}})">
-        <div class="hero-overlay"></div>
-        <div class="hero-content text-neutral-content text-center">
-            <div class="max-w-md">
-                <h1 class="mb-5 text-5xl font-bold flex justify-center select-none">LastHope <span class="text-secondary text-lg self-start">v34</span></h1>
-                <p class="mb-5">
-                    Добро пожаловать на форум сервера «Последняя надежда» в Counter-Strike:Source v34. 
-                    Тут ты найдешь много полезной информации и сможешь весело провести время.
-                </p>
-                <a href="{% url 'forum' %}" class="btn btn-primary">К общению</a>
+
+        updateServerStats();
+        setInterval(updateServerStats, 30000);
+    });
+
+    async function updateServerStats() {
+        try {
+            const data = await fetch('/api/server-stats/').then(r => r.json());
+
+            document.getElementById('players-online').textContent =
+                data.status === 'online' ? `${data.players}/${data.max_players}` : '--/--';
+
+            document.getElementById('current-map').textContent =
+                (data.status === 'online' && data.map) ? data.map : '—';
+
+            const badge = document.getElementById('server-status');
+            if (data.status === 'online') {
+                badge.className = 'badge badge-primary gap-2';
+                badge.innerHTML = `
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    ONLINE`;
+            } else {
+                badge.className = 'badge badge-error gap-2';
+                badge.innerHTML = 'OFFLINE';
+            }
+        } catch (e) {
+            console.error('Server stats error:', e);
+        }
+    }
+
+    function copyIP() {
+        const ip = '46.174.49.39:27228';
+        navigator.clipboard.writeText(ip).then(() => showToast(`IP скопирован: ${ip}`, 'success'));
+    }
+
+    function downloadLauncher() {
+        const a = Object.assign(document.createElement('a'), {
+            href: '/static/downloads/LastHope.exe',
+            download: 'LastHope.exe',
+        });
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast('Лаунчер скачан!', 'success');
+    }
+
+    function showToast(text, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = 'toast toast-top toast-center z-50';
+        toast.innerHTML = `<div class="alert alert-${type}"><span>${text}</span></div>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+</script>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<div class="hero min-h-screen -mt-17 relative z-0"
+     style="background-image: url({{ banner.image.url }})">
+    <div class="hero-overlay bg-opacity-70 bg-gradient-to-b from-base-300/80 to-base-100/90"></div>
+
+    <div class="hero-content text-neutral-content text-center">
+        <div class="max-w-2xl">
+
+            <!-- Лого + статус -->
+            <div class="flex flex-col items-center gap-2 mb-5">
+                <div class="flex items-center">
+                    <img src="{% static 'logo_mini_skull.svg' %}" alt="" class="w-25"/>
+                    <img src="{% static 'logo.svg' %}" alt="LastHope v34" />
+                </div>
+                <span id="server-status" class="badge badge-primary gap-2">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    ONLINE
+                </span>
             </div>
+
+            <p class="mb-8 text-lg leading-relaxed">
+                Добро пожаловать на форум сервера «Последняя надежда» в Counter-Strike:Source v34.
+                Тут ты найдешь много полезной информации и сможешь весело провести время.
+            </p>
+
+            <!-- Быстрая статистика -->
+            <div class="stats shadow mb-8 bg-base-300/50 backdrop-blur">
+                <div class="stat place-items-center">
+                    <div class="stat-title">Игроков онлайн</div>
+                    <div id="players-online" class="stat-value text-primary">--/--</div>
+                </div>
+                <div class="stat place-items-center">
+                    <div class="stat-title">Текущая карта</div>
+                    <div id="current-map" class="stat-value text-sm">Загрузка...</div>
+                </div>
+                <div class="stat place-items-center">
+                    <div class="stat-title">Участников форума</div>
+                    <div class="stat-value text-secondary">{{ total_users }}</div>
+                </div>
+            </div>
+
+            <!-- Кнопки -->
+            <div class="flex gap-4 justify-center flex-wrap">
+                <a href="{% url 'forum' %}" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-comments"></i>
+                    К общению
+                </a>
+
+                <div class="dropdown dropdown-bottom">
+                    <label tabindex="0" class="btn btn-secondary btn-lg">
+                        <i class="fa-solid fa-gamepad"></i>
+                        Играть
+                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                    </label>
+                    <ul tabindex="0"
+                        class="dropdown-content z-10 menu p-2 shadow-lg bg-base-200 rounded-box w-72 mt-2">
+                        <li class="menu-title"><span>Способ подключения</span></li>
+                        <li>
+                            <a href="steam://connect/46.174.49.39:27228" class="flex items-start gap-3">
+                                <i class="fa-brands fa-steam text-xl"></i>
+                                <div>
+                                    <div class="font-semibold">Steam версия</div>
+                                    <div class="text-xs opacity-70">Лицензионный клиент</div>
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a onclick="downloadLauncher()" class="flex items-start gap-3 cursor-pointer">
+                                <i class="fa-solid fa-download text-xl"></i>
+                                <div>
+                                    <div class="font-semibold">Скачать лаунчер</div>
+                                    <div class="text-xs opacity-70">Non-Steam клиент</div>
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a onclick="copyIP()" class="flex items-start gap-3 cursor-pointer">
+                                <i class="fa-solid fa-copy text-xl"></i>
+                                <div>
+                                    <div class="font-semibold">Скопировать IP</div>
+                                    <div class="text-xs opacity-70">46.174.49.39:27228</div>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
         </div>
-        <div class="absolute bottom-0"><i class="fa-solid fa-angles-down text-5xl opacity-50 animate-bounce text-secondary"></i></div>
     </div>
-    <div class="p-10 flex space-x-10">
-        <div class="w-full bg-base-200 card">
-            <h2 class="card-title p-5">Топ лучших участников форума</h2>
-            <ul class="card-body list">
-                <li class="list-row">
 
-                </li>
-            </ul>
-        </div>
-        {% if polls %}
-        <ul class="list w-1/3">
-            {% for poll in polls %}
-                <li class="list-row flex">
-                    <div class="card bg-base-200 w-full">
-                        <div class="card-title p-4">{{poll.poll.title}}</div>
-                        <div class="card-body">
-                            {% if user.is_authenticated %}
-                                {% if poll.can_vote %}
-                                    <form method="post" class="fieldset space-y-2">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="poll_id" value="{{ poll.poll.id }}">
-                                        {% for option in poll.form.options %}
-                                            <label class="label cursor-pointer gap-3">
-                                                {{ option.tag }}
-                                                {{option.choice_label}}
-                                            </label>     
-                                        {% endfor %}
-                                        <button class="btn btn-neutral mt-4">Голосовать</button>
-                                    </form>
-                                {% else %}
-                                    {% for item in poll.items %}
-                                        <div class="fieldset">
-                                            <label class="flex justify-between text-sm label">
-                                                <span class="{% if item.is_winner %} badge badge-primary {% endif %}">{{ item.text }}</span>
-                                                <span>{{ item.percent }}%</span>
-                                            </label>
+    <div class="absolute bottom-8">
+        <i class="fa-solid fa-angles-down text-4xl opacity-50 animate-bounce text-secondary"></i>
+    </div>
+</div>
 
-                                            <progress class="progress progress-primary" value="{{item.percent}}" max="100"></progress>
-                                        </div>
-                                    {% endfor %}
-                                {% endif %}
-                            {% else %}
-                                <p><a href="{% url 'login' %}" class="link link-hover text-secondary">Войди</a> чтобы принять участие в голосовании</p>
-                            {% endif %}
+<!-- ═══════════════════════ ОСНОВНОЙ КОНТЕНТ ═══════════════════════ -->
+<div class="container mx-auto p-10">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- ──────── ЛЕВАЯ КОЛОНКА ──────── -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- ТОП ИГРОКОВ -->
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title">
+                        <i class="fa-solid fa-trophy text-yellow-500"></i>
+                        Топ игроков сервера
+                    </h2>
+
+                    <!-- DaisyUI v4 radio-tabs -->
+                    <div class="tabs tabs-box mt-2">
+
+                        <!-- ── ТАБ: По убийствам ── -->
+                        <label class="tab">
+                            <input type="radio" name="top_tabs" checked />
+                            <i class="fa-solid fa-skull mr-2"></i>По убийствам
+                        </label>
+                        <div class="tab-content bg-base-100 border-base-300 p-4">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Игрок</th>
+                                        <th>Убийств</th>
+                                        <th>Время</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for player in top_players_kills %}
+                                    <tr class="hover">
+                                        <td>
+                                            {% if forloop.counter == 1 %}<i class="fa-solid fa-trophy text-yellow-500"></i>
+                                            {% elif forloop.counter == 2 %}<i class="fa-solid fa-medal text-gray-400"></i>
+                                            {% elif forloop.counter == 3 %}<i class="fa-solid fa-medal text-amber-700"></i>
+                                            {% else %}{{ forloop.counter }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="flex items-center gap-3">
+                                                <div class="avatar placeholder">
+                                                    <div class="bg-neutral text-neutral-content rounded-full w-9 flex items-center justify-center">
+                                                        <span class="text-xs font-bold">{{ player.nickname|slice:":2"|upper }}</span>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div class="font-semibold">{{ player.nickname }}</div>
+                                                    {% if player.is_online %}
+                                                        <div class="text-xs text-success flex items-center gap-1">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-success inline-block"></span>онлайн
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-error gap-1">
+                                                <i class="fa-solid fa-crosshairs text-xs"></i>
+                                                {{ player.kills }}
+                                            </span>
+                                        </td>
+                                        <td class="text-base-content/70">{{ player.playtime }} ч</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-base-content/50 py-6">
+                                            <i class="fa-solid fa-database mr-2"></i>Данных пока нет
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
+
+                        <!-- ── ТАБ: По времени ── -->
+                        <label class="tab">
+                            <input type="radio" name="top_tabs" />
+                            <i class="fa-solid fa-clock mr-2"></i>По времени
+                        </label>
+                        <div class="tab-content bg-base-100 border-base-300 p-4">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Игрок</th>
+                                        <th>Время</th>
+                                        <th>Убийств</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for player in top_players_time %}
+                                    <tr class="hover">
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>
+                                            <div class="flex items-center gap-3">
+                                                <div class="avatar placeholder">
+                                                    <div class="bg-neutral text-neutral-content rounded-full w-9 flex items-center justify-center">
+                                                        <span class="text-xs font-bold">{{ player.nickname|slice:":2"|upper }}</span>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div class="font-semibold">{{ player.nickname }}</div>
+                                                    {% if player.is_online %}
+                                                        <div class="text-xs text-success flex items-center gap-1">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-success inline-block"></span>онлайн
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <!-- player.playtime уже в часах (float) -->
+                                            <span class="badge badge-primary gap-1">
+                                                <i class="fa-solid fa-clock text-xs"></i>
+                                                {{ player.playtime }} ч
+                                            </span>
+                                        </td>
+                                        <td class="text-base-content/70">{{ player.kills }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-base-content/50 py-6">
+                                            <i class="fa-solid fa-database mr-2"></i>Данных пока нет
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        
+
+                    </div>{# /tabs #}
+
+                    <div class="card-actions justify-end mt-4">
+                        <a href="" class="btn btn-sm btn-outline">
+                            Полная таблица лидеров
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
                     </div>
-                </li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-    </div>
-    {% if rules %}
-        <div class="p-10">
-            <div class="card bg-base-200">
-                <p class="card-title p-5">Правила форума</p>
-                <ol class="card-body list">
-                {% for rule in rules%}
-                    <li class="list-row">{{rule.text}}</li>
-                {% endfor %}
-                </ol>
+                </div>
             </div>
-        </div>
-    {% endif %}
+
+            <!-- ГОРЯЧИЕ ТЕМЫ -->
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title">
+                        <i class="fa-solid fa-fire text-orange-500"></i>
+                        Горячие темы
+                    </h2>
+                    <div class="space-y-3">
+                        {% for post in recent_posts %}
+                        <div class="flex justify-between items-center p-3 bg-base-300 rounded-lg hover:bg-base-100 transition-colors">
+                            <div>
+                                <a href="{% url 'post_detail' post.id %}" class="link link-hover font-medium">
+                                    {{ post.title }}
+                                </a>
+                                <p class="text-xs text-base-content/60 mt-1">
+                                    {{ post.author.username }} • {{ post.created_at|timesince }} назад
+                                </p>
+                            </div>
+                            <div class="badge badge-primary">{{ post.replies_count }}</div>
+                        </div>
+                        {% empty %}
+                        <p class="text-base-content/50 text-sm text-center py-4">
+                            <i class="fa-solid fa-inbox mr-2"></i>Тем пока нет
+                        </p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        </div>{# /left col #}
+
+        <!-- ──────── ПРАВАЯ КОЛОНКА ──────── -->
+        <div class="space-y-6">
+
+            <!-- ОПРОСЫ -->
+            {% if polls %}
+            {% for poll in polls %}
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-base">
+                        <i class="fa-solid fa-poll"></i>
+                        {{ poll.poll.title }}
+                    </h2>
+
+                    {% if user.is_authenticated %}
+                        {% if poll.can_vote %}
+                            <form method="post" class="space-y-3">
+                                {% csrf_token %}
+                                <input type="hidden" name="poll_id" value="{{ poll.poll.id }}">
+                                {% for option in poll.form.options %}
+                                    <label class="label cursor-pointer justify-start gap-3 bg-base-300 p-3 rounded-lg hover:bg-base-100 transition-colors">
+                                        {{ option.tag }}
+                                        <span>{{ option.choice_label }}</span>
+                                    </label>
+                                {% endfor %}
+                                <button class="btn btn-primary btn-block">
+                                    <i class="fa-solid fa-check"></i>
+                                    Голосовать
+                                </button>
+                            </form>
+                        {% else %}
+                            {% for item in poll.items %}
+                                <div class="space-y-1">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="{% if item.is_winner %}font-bold text-primary{% endif %}">{{ item.text }}</span>
+                                        <span class="font-semibold">{{ item.percent }}%</span>
+                                    </div>
+                                    <progress class="progress progress-primary" value="{{ item.percent }}" max="100"></progress>
+                                </div>
+                            {% endfor %}
+                            <p class="text-xs text-base-content/60 mt-4">
+                                Всего голосов: {{ poll.total_votes }}
+                            </p>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert">
+                            <i class="fa-solid fa-info-circle"></i>
+                            <span>
+                                <a href="{% url 'login' %}" class="link link-primary">Войди</a>,
+                                чтобы принять участие в голосовании
+                            </span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <!-- ПРАВИЛА -->
+            {% if rules %}
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title">
+                        <i class="fa-solid fa-gavel text-error"></i>
+                        Правила форума
+                    </h2>
+                    <ol class="space-y-2 list-decimal list-inside text-sm">
+                        {% for rule in rules %}
+                        <li class="leading-relaxed">{{ rule.text }}</li>
+                        {% endfor %}
+                    </ol>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- БЫСТРЫЕ ССЫЛКИ -->
+            <div class="card bg-gradient-to-br from-primary/20 to-secondary/20 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title text-base">Полезные ссылки</h3>
+                    <div class="space-y-2">
+                        <a href="#" class="btn btn-sm btn-block justify-start">
+                            <i class="fa-brands fa-discord"></i>Discord сервера
+                        </a>
+                        <a href="#" class="btn btn-sm btn-block justify-start">
+                            <i class="fa-brands fa-vk"></i>Группа ВКонтакте
+                        </a>
+                        <a href="#" class="btn btn-sm btn-block justify-start">
+                            <i class="fa-solid fa-book"></i>Гайды для новичков
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>{# /right col #}
+
+    </div>
+</div>
 
 {% endblock content %}
-    

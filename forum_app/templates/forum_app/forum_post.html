@@ -1,0 +1,335 @@
+{% load static %}
+{% load forum_filters %}
+{% load humanize %}
+
+{# ══════════════════════════════════════════════════════════════════════ #}
+{# Отдельный пост форума                                                  #}
+{# Инициализирует лайки в Alpine store при рендере                       #}
+{# ══════════════════════════════════════════════════════════════════════ #}
+
+<li
+  id="  -id-{{ post.id }}"
+  data-post-id="{{ post.id }}"
+  class="forum-post"
+  x-data="{
+    postId: {{ post.id }},
+    isDeleted: {{ post.deleted|yesno:'true,false' }},
+    isHidden: {{ post.visible|yesno:'false,true' }},
+    showHidden: false,
+    dropdownOpen: false,
+    editMode: false,
+
+    init() {
+      /* Регистрируем пост в Alpine store */
+      $store.forum.initPost(
+        {{ post.id }},
+        {{ post.is_liked_by_user|default:False|yesno:'true,false' }},
+        {{ post.likes.count }}
+      );
+
+      /* WebSocket: пост удалён */
+      window.addEventListener('ws:post-deleted', e => {
+        if (e.detail.post_id == this.postId) this.isDeleted = true;
+      });
+      /* WebSocket: пост отредактирован */
+      window.addEventListener('ws:post-edited', e => {
+        if (e.detail.post_id == this.postId) {
+          this.$el.querySelector('.post-content').innerHTML = e.detail.content;
+        }
+      });
+    }
+  }"
+  :class="{
+    'opacity-60': isDeleted || isHidden
+  }"
+>
+
+  {# ── Карточка поста ── #}
+  <article
+    class="card bg-base-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden"
+    :class="{
+      'border border-error/30': isDeleted,
+      'border border-warning/30': isHidden && !isDeleted,
+    }"
+  >
+
+    {# ── DELETED OVERLAY ── #}
+    <template x-if="isDeleted">
+      <div class="absolute inset-0 z-10 post-deleted-overlay flex items-center justify-center">
+        <div class="bg-base-100/90 rounded-xl px-4 py-3 text-sm text-error flex items-center gap-2 shadow">
+          <i class="fa-solid fa-trash-can"></i>
+          <span>Пост удалён</span>
+        </div>
+      </div>
+    </template>
+
+    {# ── HIDDEN BADGE ── #}
+    <template x-if="isHidden && !isDeleted">
+      <div class="px-4 pt-2">
+        <div class="badge badge-warning badge-sm gap-1">
+          <i class="fa-solid fa-eye-slash text-[10px]"></i> Скрыт
+        </div>
+      </div>
+    </template>
+
+    {# ── Шапка поста: автор + мета ── #}
+    <div class="flex items-start gap-3 px-4 pt-4 pb-2">
+
+      {# Аватар #}
+      <div class="shrink-0">
+        <a href="{% url 'user' post.author.username %}">
+          <div class="avatar {% if post.author.profile.is_online %}avatar-online{% else %}avatar-offline{% endif %}">
+            <div class="w-10 rounded-full ring-2 ring-base-300">
+              <img
+                src="{{ post.author.profile.avatar.url }}"
+                alt="{{ post.author.profile.displayname }}"
+                loading="lazy"
+              >
+            </div>
+          </div>
+        </a>
+      </div>
+
+      {# Имя + мета + значки #}
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center flex-wrap gap-x-2 gap-y-0.5">
+          <a
+            href="{% url 'user' post.author.username %}"
+            class="font-semibold text-sm hover:text-primary transition-colors"
+          >
+            {{ post.author.profile.displayname }}
+          </a>
+
+          {# Группа / роль #}
+          {% if post.author.groups.all %}
+            <span class="badge badge-ghost badge-xs text-[10px] uppercase tracking-wide">
+              {{ post.author.groups.first }}
+            </span>
+          {% endif %}
+
+          {# Закреплён #}
+          {% if post.pinned %}
+            <span class="badge badge-info badge-xs gap-1">
+              <i class="fa-solid fa-thumbtack text-[9px]"></i>
+            </span>
+          {% endif %}
+
+          {# Отредактирован #}
+          {% if post.edited %}
+            <span class="text-[10px] opacity-40 flex items-center gap-1">
+              <i class="fa-solid fa-pen-to-square"></i>ред.
+            </span>
+          {% endif %}
+        </div>
+
+        {# Время #}
+        <p class="text-xs opacity-40 mt-0.5">
+          <a
+            href="#post-id-{{ post.id }}"
+            class="hover:opacity-70"
+            title="{{ post.created_at|date:'d.m.Y H:i:s' }}"
+          >
+            {{ post.created_at|naturaltime }}
+          </a>
+        </p>
+      </div>
+
+      {# Кнопки действий (hover) #}
+      <div class="post-actions flex items-center gap-1 shrink-0">
+
+        {# Reply #}
+        {% if user.is_authenticated and flags.can_post %}
+          {% if not topic.closed or flags.can_post_closed %}
+          <button
+            class="btn btn-ghost btn-xs btn-square tooltip tooltip-left"
+            data-tip="Ответить"
+            @click="openReplyForm({{ post.id }}, '{{ post.author.profile.displayname|escapejs }}')"
+          >
+            <i class="fa-solid fa-reply text-sm"></i>
+          </button>
+          {% endif %}
+        {% endif %}
+
+        {# Dropdown: модераторские действия #}
+        {% if post.flag.can_dropdown %}
+        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+          <button
+            class="btn btn-ghost btn-xs btn-square"
+            @click="open = !open"
+            :aria-expanded="open"
+          >
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+          </button>
+
+          <ul
+            x-show="open"
+            x-cloak
+            x-transition:enter="transition ease-out duration-100"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-75"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            class="dropdown-menu absolute right-0 top-full mt-1 bg-base-300 rounded-xl shadow-xl border border-base-content/10 w-48 z-30 py-1 overflow-hidden"
+          >
+
+            {% if post.flag.can_edit %}
+            <li>
+              <button
+                class="w-full text-left px-3 py-2 text-sm hover:bg-base-content/10 flex items-center gap-2"
+                @click="openEditForm({{ post.id }}, '{{ category.slug|escapejs }}', {{ topic.id }}); dropdownOpen = false"
+              >
+                <i class="fa-solid fa-pencil w-4 text-center"></i>Редактировать
+              </button>
+            </li>
+            {% endif %}
+
+            {% if post.flag.can_pin %}
+              {% if post.pinned %}
+              <li>
+                <form method="post" action="{% url 'post' category.slug topic.id post.id 'unpin' %}">
+                  {% csrf_token %}
+                  <button class="w-full text-left px-3 py-2 text-sm hover:bg-base-content/10 flex items-center gap-2">
+                    <i class="fa-solid fa-thumbtack-slash w-4 text-center"></i>Открепить
+                  </button>
+                </form>
+              </li>
+              {% else %}
+              <li>
+                <form method="post" action="{% url 'post' category.slug topic.id post.id 'pin' %}">
+                  {% csrf_token %}
+                  <button class="w-full text-left px-3 py-2 text-sm hover:bg-base-content/10 flex items-center gap-2">
+                    <i class="fa-solid fa-thumbtack w-4 text-center"></i>Закрепить
+                  </button>
+                </form>
+              </li>
+              {% endif %}
+            {% endif %}
+
+            {% if post.flag.can_hide %}
+              {% if post.visible %}
+              <li>
+                <form method="post" action="{% url 'post' category.slug topic.id post.id 'hide' %}">
+                  {% csrf_token %}
+                  <button class="w-full text-left px-3 py-2 text-sm hover:bg-base-content/10 flex items-center gap-2">
+                    <i class="fa-solid fa-eye-slash w-4 text-center"></i>Скрыть
+                  </button>
+                </form>
+              </li>
+              {% else %}
+              <li>
+                <form method="post" action="{% url 'post' category.slug topic.id post.id 'show' %}">
+                  {% csrf_token %}
+                  <button class="w-full text-left px-3 py-2 text-sm hover:bg-base-content/10 flex items-center gap-2">
+                    <i class="fa-solid fa-eye w-4 text-center"></i>Показать
+                  </button>
+                </form>
+              </li>
+              {% endif %}
+            {% endif %}
+
+            {% if post.flag.can_delete or post.flag.can_really_delete %}
+            <li class="border-t border-base-content/10 mt-1">
+              {% if post.flag.can_delete and not post.deleted %}
+              <form method="post" action="{% url 'post' category.slug topic.id post.id 'delete' %}">
+                {% csrf_token %}
+                <button class="w-full text-left px-3 py-2 text-sm text-error hover:bg-error/10 flex items-center gap-2">
+                  <i class="fa-solid fa-trash w-4 text-center"></i>Удалить (мягко)
+                </button>
+              </form>
+              {% endif %}
+              {% if post.flag.can_really_delete %}
+              <form method="post" action="{% url 'post' category.slug topic.id post.id 'true_delete' %}">
+                {% csrf_token %}
+                <button class="w-full text-left px-3 py-2 text-sm text-error hover:bg-error/10 flex items-center gap-2">
+                  <i class="fa-solid fa-trash-can w-4 text-center"></i>Удалить навсегда
+                </button>
+              </form>
+              {% endif %}
+            </li>
+            {% endif %}
+
+          </ul>
+        </div>
+        {% endif %}
+
+      </div>{# /post-actions #}
+    </div>{# /header #}
+
+    {# ── Цитата родителя ── #}
+    {% if post.parent %}
+    <div class="mx-4 mb-2">
+      <a
+        href="#post-id-{{ post.parent.id }}"
+        class="parent-quote block rounded-lg px-3 py-2 hover:bg-base-content/10 transition-colors cursor-pointer no-underline group"
+      >
+        <div class="flex items-center gap-2 mb-1 text-xs opacity-60 font-medium">
+          <i class="fa-solid fa-reply scale-x-[-1]"></i>
+          {{ post.parent.author.profile.displayname }}
+          {% for indicator in post.indicators %}
+            <span class="opacity-70">·</span>
+            {{ indicator|safe }}
+          {% endfor %}
+        </div>
+        <p class="text-xs opacity-70 leading-relaxed line-clamp-2 group-hover:opacity-90">
+          {{ post.parent_preview }}
+        </p>
+      </a>
+    </div>
+    {% endif %}
+
+    {# ── Контент поста ── #}
+    <div class="px-4 pb-3">
+      {# post-content-body — таргет для inline-редактора и WS-обновлений #}
+      <div class="post-content-body post-content prose prose-sm max-w-none">
+        {{ post.content|safe }}
+      </div>
+      {# Placeholder пока пост редактируется #}
+      <div class="post-edit-placeholder" onclick="_edActivate()">
+        <i class="fa-solid fa-pencil animate-pulse"></i>
+        <span>Редактируется… нажми чтобы перейти к редактору</span>
+      </div>
+    </div>
+
+    {# ── Футер: лайки ── #}
+    <div class="px-4 pb-3 flex items-center gap-3">
+
+      {# Лайк #}
+      <button
+        class="like-btn btn btn-ghost btn-xs gap-1.5 rounded-full px-2.5 transition-all duration-150"
+        :class="{
+          'text-error liked': $store.forum.getLiked({{ post.id }}),
+          'opacity-60': !$store.forum.getLiked({{ post.id }})
+        }"
+        {% if user.is_authenticated %}
+          @click="$store.forum.toggleLike({{ post.id }})"
+        {% else %}
+          onclick="document.getElementById('need-login-toast').showModal()"
+        {% endif %}
+        :aria-label="$store.forum.getLiked({{ post.id }}) ? 'Убрать лайк' : 'Поставить лайк'"
+      >
+        <i
+          class="like-icon fa-heart text-sm"
+          :class="$store.forum.getLiked({{ post.id }}) ? 'fa-solid' : 'fa-regular'"
+        ></i>
+        <span
+          class="text-xs font-medium tabular-nums"
+          x-text="$store.forum.getCount({{ post.id }})"
+        ></span>
+      </button>
+
+      {# Ссылка на пост #}
+      <a
+        href="#post-id-{{ post.id }}"
+        class="btn btn-ghost btn-xs gap-1.5 rounded-full px-2.5 opacity-40 hover:opacity-70"
+        title="Ссылка на пост"
+      >
+        <i class="fa-solid fa-link text-xs"></i>
+        <span class="text-xs">#{{ post.id }}</span>
+      </a>
+
+    </div>{# /footer #}
+
+  </article>
+
+</li>

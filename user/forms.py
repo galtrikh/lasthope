@@ -71,20 +71,20 @@ def allowed_permissions_qs():
 class EditForm(forms.ModelForm):
     displayname = forms.CharField(required=False, widget=forms.TextInput(attrs={
         'id': 'displayname',
-        'class': 'bg-blue-50 p-2 px-4 rounded-full border-2 border-sky-900 text-black w-full'
+        'class': 'input validator'
     }))
     servername = forms.CharField(required=False, widget=forms.TextInput(attrs={
         'id': 'servername',
-        'class': 'bg-blue-50 p-2 px-4 rounded-full border-2 border-sky-900 text-black w-full'
+        'class': 'input validator'
     }))
     bio = forms.CharField(required=False, widget=forms.Textarea(attrs={
         'id': 'bio',
-        'class': 'bg-blue-50 p-2 px-4 rounded-3xl border-2 border-sky-900 text-black w-full',
+        'class': 'textarea',
         'rows' : 5
     }))
     avatar = forms.ImageField(required=False, widget=forms.FileInput(attrs={
         'id': 'avatar',
-        'class': 'bg-blue-50 p-2 px-4 rounded-full border-2 border-sky-900 text-black w-fit bg-sky-500 hover:bg-sky-700 cursor-pointer block',
+        'class': 'file-input',
         'accept': 'image/png, image/jpeg, image/bmp, image/gif'
     }))
     groups = forms.ModelMultipleChoiceField(

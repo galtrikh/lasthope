@@ -7,8 +7,218 @@ from notification.models import Notification
 from notification.services import notify_bulk
 from django.contrib.auth.models import User
 from django.db.models import Count
+from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
+from django.utils import timezone
 
-# Create your models here.
+User = get_user_model()
+
+
+class ServerPlayer(models.Model):
+    """
+    Статистика игрока на сервере CS:S
+    Хранит данные, собранные с сервера через Source Query
+    """
+    steam_id = models.CharField(
+        max_length=32, 
+        unique=True, 
+        db_index=True,
+        verbose_name='Steam ID'
+    )
+    nickname = models.CharField(
+        max_length=64, 
+        verbose_name='Последний никнейм',
+        db_index=True
+    )
+    
+    # Статистика
+    total_playtime = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Общее время игры (секунды)',
+        help_text='Общее время на сервере в секундах'
+    )
+    total_kills = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Всего убийств'
+    )
+    total_deaths = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Всего смертей'
+    )
+    total_escapes = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Успешных побегов',
+        help_text='Количество успешных побегов из тюрьмы'
+    )
+    total_rounds = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Сыгранных раундов'
+    )
+    
+    # Дополнительная статистика
+    headshots = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Хедшотов'
+    )
+    longest_killstreak = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Максимальная серия убийств'
+    )
+    
+    # Метаданные
+    first_seen = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Первый вход'
+    )
+    last_seen = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Последний вход',
+        db_index=True
+    )
+    is_banned = models.BooleanField(
+        default=False,
+        verbose_name='Забанен'
+    )
+    
+    # Связь с пользователем форума (опционально)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='server_stats',
+        verbose_name='Пользователь форума'
+    )
+    
+    class Meta:
+        verbose_name = 'Статистика игрока'
+        verbose_name_plural = 'Статистика игроков'
+        ordering = ['-total_kills', '-total_playtime']
+        indexes = [
+            models.Index(fields=['-total_kills', '-total_playtime']),
+            models.Index(fields=['-last_seen']),
+        ]
+    
+    def __str__(self):
+        return f"{self.nickname} ({self.steam_id})"
+    
+    @property
+    def playtime_hours(self):
+        """Время игры в часах"""
+        return round(self.total_playtime / 3600, 1)
+    
+    @property
+    def kd_ratio(self):
+        """Соотношение убийств к смертям"""
+        if self.total_deaths == 0:
+            return self.total_kills
+        return round(self.total_kills / self.total_deaths, 2)
+    
+    @property
+    def headshot_percentage(self):
+        """Процент хедшотов"""
+        if self.total_kills == 0:
+            return 0
+        return round(self.headshots * 100 / self.total_kills, 1)
+    
+    @property
+    def is_online(self):
+        """Был ли игрок онлайн в последние 5 минут"""
+        if not self.last_seen:
+            return False
+        return timezone.now() - self.last_seen < timezone.timedelta(minutes=5)
+
+
+class ServerPlayerSession(models.Model):
+    """
+    История игровых сессий
+    Для отслеживания активности и построения графиков
+    """
+    player = models.ForeignKey(
+        ServerPlayer,
+        on_delete=models.CASCADE,
+        related_name='sessions',
+        verbose_name='Игрок'
+    )
+    session_start = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Начало сессии',
+        db_index=True
+    )
+    session_end = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Конец сессии'
+    )
+    duration = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Длительность (секунды)'
+    )
+    kills_in_session = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Убийств за сессию'
+    )
+    deaths_in_session = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Смертей за сессию'
+    )
+    
+    class Meta:
+        verbose_name = 'Игровая сессия'
+        verbose_name_plural = 'Игровые сессии'
+        ordering = ['-session_start']
+        indexes = [
+            models.Index(fields=['-session_start']),
+        ]
+    
+    def __str__(self):
+        return f"{self.player.nickname} - {self.session_start.strftime('%Y-%m-%d %H:%M')}"
+
+
+class ServerStatSnapshot(models.Model):
+    """
+    Снимок состояния сервера
+    Для построения графиков онлайна и истории
+    """
+    timestamp = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Время снимка'
+    )
+    players_online = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Игроков онлайн'
+    )
+    current_map = models.CharField(
+        max_length=64,
+        verbose_name='Текущая карта'
+    )
+    server_online = models.BooleanField(
+        default=True,
+        verbose_name='Сервер онлайн'
+    )
+    
+    class Meta:
+        verbose_name = 'Снимок сервера'
+        verbose_name_plural = 'Снимки сервера'
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['-timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.timestamp.strftime('%Y-%m-%d %H:%M')} - {self.players_online} игроков"
 
 class VoteBox(models.Model):
     title = models.CharField(max_length=255, verbose_name='Заголовок')

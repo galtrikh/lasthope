@@ -9,6 +9,11 @@ markdown
 djangorestframework
 asgiref
 django-ckeditor-5
+django-htmx
+python-a2s
+apscheduler
+channels
+daphne
 # django-tiptap
 django-unfold
 tinycss2
