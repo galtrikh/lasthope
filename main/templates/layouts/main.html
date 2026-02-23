@@ -47,14 +47,14 @@
                 </div>
             </div>
             <div class="navbar-end space-x-4 pr-5">
-                <div class="dropdown dropdown-end">
+                {% comment %} <div class="dropdown dropdown-end">
                     <div class="tooltip tooltip-bottom" data-tip="Поиск">
                         <button tabindex="0" class="btn btn-ghost btn-circle"><i class="fa-solid fa-magnifying-glass text-lg"></i></button>
                     </div>
                     <div tabindex="-1" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow">
                         <input type="text" placeholder="Поиск..." name="search" class="input"/>
                     </div>
-                </div>
+                </div> {% endcomment %}
                 {% if user.is_authenticated %}
                     <div class="dropdown dropdown-end">
                         <div class="tooltip tooltip-bottom" data-tip="Уведомления">
@@ -160,9 +160,9 @@
         </main>
         <footer class="footer footer-horizontal footer-center bg-base-200 text-base-content rounded p-10">
             <nav class="grid grid-flow-col gap-4">
-                <a class="link link-hover">О нас</a>
-                <a class="link link-hover">Контакты</a>
-                <a class="link link-hover">Работа</a>
+                <a href="{% url 'about' %}" class="link link-hover">О нас</a>
+                <a href="{% url 'contacts' %}" class="link link-hover">Контакты</a>
+                <a href="{% url 'job' %}" class="link link-hover">Работа</a>
             </nav>
             <nav>
                 <div class="grid grid-flow-col gap-4">

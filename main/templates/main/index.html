@@ -18,6 +18,7 @@
         });
 
         updateServerStats();
+        updateServerPlayers();
         setInterval(updateServerStats, 30000);
     });
 
@@ -44,6 +45,14 @@
                 badge.className = 'badge badge-error gap-2';
                 badge.innerHTML = 'OFFLINE';
             }
+        } catch (e) {
+            console.error('Server stats error:', e);
+        }
+    }
+
+    async function updateServerPlayers() {
+        try {
+            const data = await fetch('/api/server-players/');
         } catch (e) {
             console.error('Server stats error:', e);
         }
@@ -77,10 +86,10 @@
 <!-- ═══════════════════════ HERO ═══════════════════════ -->
 <div class="hero min-h-screen -mt-17 relative z-0"
      style="background-image: url({{ banner.image.url }})">
-    <div class="hero-overlay bg-opacity-70 bg-gradient-to-b from-base-300/80 to-base-100/90"></div>
+    <div class="hero-overlay bg-opacity-30 bg-gradient-to-b from-base-300/20 to-base-100/30"></div>
 
     <div class="hero-content text-neutral-content text-center">
-        <div class="max-w-2xl">
+        <div class="max-w-2xl bg-base-100 p-20 rounded-2xl">
 
             <!-- Лого + статус -->
             <div class="flex flex-col items-center gap-2 mb-5">
@@ -431,12 +440,12 @@
                 <div class="card-body">
                     <h3 class="card-title text-base">Полезные ссылки</h3>
                     <div class="space-y-2">
-                        <a href="#" class="btn btn-sm btn-block justify-start">
+                        {% comment %} <a href="#" class="btn btn-sm btn-block justify-start">
                             <i class="fa-brands fa-discord"></i>Discord сервера
                         </a>
                         <a href="#" class="btn btn-sm btn-block justify-start">
                             <i class="fa-brands fa-vk"></i>Группа ВКонтакте
-                        </a>
+                        </a> {% endcomment %}
                         <a href="#" class="btn btn-sm btn-block justify-start">
                             <i class="fa-solid fa-book"></i>Гайды для новичков
                         </a>

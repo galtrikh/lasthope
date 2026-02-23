@@ -16,6 +16,14 @@ from .models import (
 from .forms import VoteForm
 from .utils.source_query import SourceServerQuery
 
+from django.utils import timezone
+from django.db import transaction
+from django.db.models import Sum
+from main.models import ServerPlayer, ServerPlayerSession, ServerStatSnapshot
+from main.utils.source_query import SourceServerQuery
+import logging
+import hashlib
+
 logger = logging.getLogger(__name__)
 
 SERVER_HOST = '46.174.49.39'
@@ -444,3 +452,224 @@ def index(request):
 
 def help_page(request):
     return render(request, 'main/help.html', {'points': HelpAccardion.objects.all()})
+
+def about_page(request):
+    return render(request, 'main/about.html', {})
+
+def contacts_page(request):
+    return render(request, 'main/contacts.html', {})
+
+def job_page(request):
+    return render(request, 'main/job.html', {})
+# ============================================
+# Player stats
+# ============================================
+
+SERVER_HOST = '46.174.49.39'
+SERVER_PORT  = 27228
+MAX_SESSION_SECONDS = 24 * 3600
+
+def server_players_api(request):
+
+    query = SourceServerQuery(SERVER_HOST, SERVER_PORT, timeout=5.0)
+    info  = query.get_info()
+
+    # ── Сервер недоступен ──────────────────────────────────────────
+    if not info:
+        ServerStatSnapshot.objects.create(
+            players_online=0, current_map='N/A', server_online=False
+        )
+        _close_stale_sessions(active_steam_ids=[])
+        return JsonResponse({'status': 'err'})
+
+    # ── Снимок состояния ───────────────────────────────────────────
+    ServerStatSnapshot.objects.create(
+        players_online=info.get('players', 0),
+        current_map=info.get('map', 'unknown'),
+        server_online=True
+    )
+
+    players_data   = query.get_players() or []
+    active_ids     = []
+
+    with transaction.atomic():
+        for p_data in players_data:
+            name = (p_data.get('name') or '').strip()
+            if not name:
+                continue
+
+            # Стабильный ID на основе ника
+            steam_id = 'g_' + hashlib.md5(name.encode('utf-8')).hexdigest()[:16]
+            active_ids.append(steam_id)
+
+            # duration от a2s — секунды подключения (float), НЕ делим на 60
+            connected_seconds = min(
+                float(p_data.get('duration', 0)),
+                MAX_SESSION_SECONDS
+            )
+            current_score = max(int(p_data.get('score', 0)), 0)  # защита от отрицательных
+
+            _process_player(steam_id, name, connected_seconds, current_score)
+
+        # Закрываем сессии вышедших игроков
+        _close_stale_sessions(active_ids)
+
+    # Пересчитываем total_playtime/total_kills для ВСЕХ активных игроков
+    # (чтобы фронт видел актуальные данные не дожидаясь закрытия сессии)
+    _recalculate_all_active(active_ids)
+    return JsonResponse({'status': 'ok'})
+
+# ──────────────────────────────────────────────────────────────────
+# Обработка одного игрока
+# ──────────────────────────────────────────────────────────────────
+
+def _process_player(steam_id, name, connected_seconds, current_score):
+    """
+    Создаёт/обновляет игрока и его текущую сессию.
+    НЕ трогает total_playtime/total_kills напрямую — они пересчитываются
+    в _recalculate_all_active после обхода всех игроков.
+    """
+    # Получаем или создаём игрока
+    player, created = ServerPlayer.objects.get_or_create(
+        steam_id=steam_id,
+        defaults={'nickname': name[:64]}
+    )
+
+    if not created:
+        # Обновляем ник и last_seen
+        ServerPlayer.objects.filter(pk=player.pk).update(
+            nickname=name[:64],
+            last_seen=timezone.now()
+        )
+        player.refresh_from_db()
+
+    # Ищем открытую сессию
+    session = (
+        ServerPlayerSession.objects
+        .filter(player=player, session_end__isnull=True)
+        .last()
+    )
+
+    if session is None:
+        # Первый раз видим игрока в этом коннекте — создаём сессию
+        ServerPlayerSession.objects.create(
+            player=player,
+            duration=int(connected_seconds),
+            kills_in_session=current_score,
+        )
+    else:
+        # Проверяем реконнект: если время вдруг сильно уменьшилось
+        if connected_seconds < session.duration * 0.5 and session.duration > 60:
+            # Игрок переподключился — закрываем старую сессию
+            _close_session(session, player)
+
+            # Открываем новую
+            ServerPlayerSession.objects.create(
+                player=player,
+                duration=int(connected_seconds),
+                kills_in_session=current_score,
+            )
+        else:
+            # Обычное обновление
+            # kills_in_session = текущий score (может только расти в рамках сессии)
+            new_kills = current_score if current_score >= 0 else session.kills_in_session
+            ServerPlayerSession.objects.filter(pk=session.pk).update(
+                duration=int(connected_seconds),
+                kills_in_session=new_kills,
+            )
+
+# ──────────────────────────────────────────────────────────────────
+# Пересчёт итоговой статистики
+# ──────────────────────────────────────────────────────────────────
+
+def _recalculate_all_active(active_steam_ids):
+    """
+    Пересчитывает total_playtime и total_kills для всех игроков онлайн.
+
+    Формула:
+        total_playtime = Σ duration(закрытые сессии) + duration(открытая)
+        total_kills    = Σ kills_in_session(закрытые) + kills_in_session(открытая)
+
+    Это гарантирует корректные данные на фронте без ожидания выхода игрока.
+    """
+    players = ServerPlayer.objects.filter(steam_id__in=active_steam_ids)
+
+    for player in players:
+        # Сумма закрытых сессий
+        closed = ServerPlayerSession.objects.filter(
+            player=player,
+            session_end__isnull=False
+        ).aggregate(
+            t=Sum('duration'),
+            k=Sum('kills_in_session')
+        )
+        closed_time  = closed['t'] or 0
+        closed_kills = closed['k'] or 0
+
+        # Открытая сессия
+        open_session = ServerPlayerSession.objects.filter(
+            player=player,
+            session_end__isnull=True
+        ).last()
+
+        open_time  = open_session.duration          if open_session else 0
+        open_kills = open_session.kills_in_session  if open_session else 0
+
+        total_time  = closed_time  + open_time
+        total_kills = closed_kills + open_kills
+
+        ServerPlayer.objects.filter(pk=player.pk).update(
+            total_playtime=max(total_time,  0),
+            total_kills=   max(total_kills, 0),
+        )
+
+
+# ──────────────────────────────────────────────────────────────────
+# Закрытие сессий
+# ──────────────────────────────────────────────────────────────────
+
+def _close_session(session, player):
+    """Закрывает одну сессию и пересчитывает итоговую статистику игрока."""
+    session.session_end = timezone.now()
+    session.save(update_fields=['session_end'])
+
+    # Пересчитываем на основе всех закрытых сессий
+    agg = ServerPlayerSession.objects.filter(
+        player=player,
+        session_end__isnull=False
+    ).aggregate(t=Sum('duration'), k=Sum('kills_in_session'))
+
+    ServerPlayer.objects.filter(pk=player.pk).update(
+        total_playtime=max(agg['t'] or 0, 0),
+        total_kills=   max(agg['k'] or 0, 0),
+    )
+
+def _close_stale_sessions(active_steam_ids):
+    """Закрывает сессии игроков, которых нет в текущем списке."""
+    stale = (
+        ServerPlayerSession.objects
+        .filter(session_end__isnull=True)
+        .exclude(player__steam_id__in=active_steam_ids)
+        .select_related('player')
+    )
+
+    count = 0
+    for session in stale:
+        _close_session(session, session.player)
+        count += 1
+
+# ──────────────────────────────────────────────────────────────────
+# Сброс статистики
+# ──────────────────────────────────────────────────────────────────
+
+def _reset_stats():
+    """Полный сброс накопленной статистики."""
+    ServerPlayerSession.objects.filter(
+        session_end__isnull=True
+    ).update(session_end=timezone.now())
+
+    ServerPlayer.objects.all().update(
+        total_playtime=0,
+        total_kills=0,
+        total_deaths=0,
+    )

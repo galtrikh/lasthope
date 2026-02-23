@@ -12,4 +12,7 @@ urlpatterns = [
     path('502/', views.e502),
     path('503/', views.e503),
     path('help/', views.help_page, name="help"),
+    path('about/', views.about_page, name="about"),
+    path('job/', views.job_page, name="job"),
+    path('contacts/', views.contacts_page, name="contacts"),
 ]
