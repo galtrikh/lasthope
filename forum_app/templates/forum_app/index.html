@@ -30,6 +30,7 @@
                     <div>{{category.name}} {% if not category.visible %}<span><i class="fa-solid fa-eye-slash text-xs opacity-50"></i></span>{% endif %}</div>
                     <div class="text-xs uppercase font-semibold opacity-60">{{category.description}}</div>
                 </a>
+                {% if user.is_authenticated %}
                 <label class="swap btn btn-square btn-ghost">
                     <input type="checkbox"
                         data-category-slug="{{ category.slug }}"
@@ -37,6 +38,7 @@
                     <i class="swap-off fa-regular fa-heart"></i>
                     <i class="swap-on fa-solid fa-heart"></i>
                 </label>
+                
                 <div class="dropdown dropdown-end" x-data="{open:false}">
                     <button class="btn btn-square btn-ghost" @click="open = !open">
                         <i class="fa-solid fa-ellipsis"></i>
@@ -89,6 +91,7 @@
                         </div>
                     </div>
                 </dialog>
+                {% endif %}
             </li>
         {% endfor %}
     

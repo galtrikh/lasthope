@@ -40,6 +40,7 @@
                         {% if topic.closed %}<span><i class="fa-solid fa-lock text-xs opacity-50"></i></span>{% endif %}
                     </div>
                 </a>
+                {% if user.is_authenticated %}
                 <label class="swap btn btn-square btn-ghost">
                     <input type="checkbox"
                     data-category-slug="{{category.slug}}"
@@ -109,6 +110,7 @@
                         {% endif %}
                     </ul>
                 </div>
+                {% endif %}
             </li>
             
             <dialog id="delete_topic_modal_{{ topic.id }}" class="modal">

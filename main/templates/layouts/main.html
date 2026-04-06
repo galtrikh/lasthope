@@ -41,7 +41,7 @@
                     <div class="indicator indicator-start">
                         <span class="indicator-item badge badge-sm badge-primary -rotate-12">BETA</span>
                         <a href="{% url 'main' %}" class="cursor-pointer text-xl flex items-start font-bold">
-                            <img src="{% static 'logo.svg' %}" alt="LastHope v34" class="w-35"/>
+                            <img src="{% static 'logo_mini.png' %}" alt="LastHope v34" class="w-20"/>
                         </a>
                     </div>
                 </div>
@@ -159,24 +159,27 @@
     
         </main>
         <footer class="footer footer-horizontal footer-center bg-base-200 text-base-content rounded p-10">
-            <nav class="grid grid-flow-col gap-4">
+            {% comment %} <nav class="grid grid-flow-col gap-4">
                 <a href="{% url 'about' %}" class="link link-hover">О нас</a>
                 <a href="{% url 'contacts' %}" class="link link-hover">Контакты</a>
                 <a href="{% url 'job' %}" class="link link-hover">Работа</a>
-            </nav>
+            </nav> {% endcomment %}
             <nav>
                 <div class="grid grid-flow-col gap-4">
-                <div class="tooltip tooltip-bottom" data-tip="46.174.49.39:27228">
-                    <a class="btn btn-ghost btn-circle">
-                        <i class="fa-solid fa-i"></i>
-                        <i class="fa-solid fa-p -ml-2"></i>
-                    </a>
-                </div>
-                <div class="tooltip tooltip-bottom" data-tip="@lasthopecssv34">
-                    <a href="https://t.me/lasthopecssv34" class="btn btn-ghost btn-circle">
-                        <i class="fa-brands fa-telegram text-xl"></i>
-                    </a>
-                </div>
+                    <div class="tooltip tooltip-bottom"
+                        data-tip="46.174.49.39:27228"
+                        onmouseout="this.setAttribute('data-tip', '46.174.49.39:27228')"
+                        onclick="navigator.clipboard.writeText('46.174.49.39:27228'); this.setAttribute('data-tip', 'Скопировано')">
+                        <a class="btn btn-ghost btn-circle">
+                            <i class="fa-solid fa-i"></i>
+                            <i class="fa-solid fa-p -ml-2.5"></i>
+                        </a>
+                    </div>
+                    <div class="tooltip tooltip-bottom" data-tip="@lasthopecssv34">
+                        <a href="https://t.me/lasthopecssv34" class="btn btn-ghost btn-circle">
+                            <i class="fa-brands fa-telegram text-xl"></i>
+                        </a>
+                    </div>
                 </div>
             </nav>
             <aside>

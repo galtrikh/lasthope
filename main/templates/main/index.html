@@ -54,7 +54,7 @@
         try {
             const data = await fetch('/api/server-players/');
         } catch (e) {
-            console.error('Server stats error:', e);
+            console.error('Server players error:', e);
         }
     }
 
@@ -94,8 +94,8 @@
             <!-- Лого + статус -->
             <div class="flex flex-col items-center gap-2 mb-5">
                 <div class="flex items-center">
-                    <img src="{% static 'logo_mini_skull.svg' %}" alt="" class="w-25"/>
-                    <img src="{% static 'logo.svg' %}" alt="LastHope v34" />
+                    {% comment %} <img src="{% static 'logo_mini_skull.svg' %}" alt="" class="w-25"/> {% endcomment %}
+                    <img src="{% static 'logo.png' %}" alt="LastHope v34" class="w-1/2 mx-auto mb-5" />
                 </div>
                 <span id="server-status" class="badge badge-primary gap-2">
                     <span class="relative flex h-2 w-2">
@@ -321,12 +321,12 @@
 
                     </div>{# /tabs #}
 
-                    <div class="card-actions justify-end mt-4">
+                    {% comment %} <div class="card-actions justify-end mt-4">
                         <a href="" class="btn btn-sm btn-outline">
                             Полная таблица лидеров
                             <i class="fa-solid fa-arrow-right"></i>
                         </a>
-                    </div>
+                    </div> {% endcomment %}
                 </div>
             </div>
 
@@ -338,17 +338,17 @@
                         Горячие темы
                     </h2>
                     <div class="space-y-3">
-                        {% for post in recent_posts %}
+                        {% for topic in recent_posts %}
                         <div class="flex justify-between items-center p-3 bg-base-300 rounded-lg hover:bg-base-100 transition-colors">
                             <div>
-                                <a href="{% url 'post_detail' post.id %}" class="link link-hover font-medium">
-                                    {{ post.title }}
+                                <a href="{% url 'topic' topic.category.slug topic.id %}" class="link link-hover font-medium">
+                                    {{ topic.title }}
                                 </a>
                                 <p class="text-xs text-base-content/60 mt-1">
-                                    {{ post.author.username }} • {{ post.created_at|timesince }} назад
+                                    {{ topic.author.profile.displayname }} • {{ topic.created_at|timesince }} назад
                                 </p>
                             </div>
-                            <div class="badge badge-primary">{{ post.replies_count }}</div>
+                            <div class="badge badge-primary">{{ topic.likes_count }}</div>
                         </div>
                         {% empty %}
                         <p class="text-base-content/50 text-sm text-center py-4">
@@ -436,7 +436,7 @@
             {% endif %}
 
             <!-- БЫСТРЫЕ ССЫЛКИ -->
-            <div class="card bg-gradient-to-br from-primary/20 to-secondary/20 shadow-xl">
+            {% comment %} <div class="card bg-gradient-to-br from-primary/20 to-secondary/20 shadow-xl">
                 <div class="card-body">
                     <h3 class="card-title text-base">Полезные ссылки</h3>
                     <div class="space-y-2">
@@ -445,13 +445,13 @@
                         </a>
                         <a href="#" class="btn btn-sm btn-block justify-start">
                             <i class="fa-brands fa-vk"></i>Группа ВКонтакте
-                        </a> {% endcomment %}
+                        </a> 
                         <a href="#" class="btn btn-sm btn-block justify-start">
                             <i class="fa-solid fa-book"></i>Гайды для новичков
                         </a>
                     </div>
                 </div>
-            </div>
+            </div> {% endcomment %}
 
         </div>{# /right col #}
 

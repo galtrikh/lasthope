@@ -13,6 +13,7 @@ from .models import (
     MainBanner, VoteBox, VoteBoxItem, VoteBoxVote,
     MainRules, HelpAccardion, ServerPlayer, ServerStatSnapshot
 )
+from forum_app.models import ForumTopic
 from .forms import VoteForm
 from .utils.source_query import SourceServerQuery
 
@@ -363,7 +364,9 @@ def index(request):
         User = get_user_model()
         total_users = cache.get_or_set('total_users_count', lambda: User.objects.count(), 300)
 
-        recent_posts = []  # TODO: заменить на реальные посты
+        recent_posts = ForumTopic.objects.annotate(
+                likes_total=Count('likes')
+            ).filter(visible=True).order_by('-likes_total')[:3]
 
     except Exception as e:
         logger.error(f"Index GET error: {e}")

@@ -1,248 +1,145 @@
-{% load static %}
 {% load forum_filters %}
-{% load humanize %}
 
-{# ══════════════════════════════════════════════════════════════════════ #}
-{# Отдельный пост форума                                                  #}
-{# Инициализирует лайки в Alpine store при рендере                       #}
-{# ══════════════════════════════════════════════════════════════════════ #}
 
 <li
-  id="  -id-{{ post.id }}"
+  id="{{ post.id }}"
   data-post-id="{{ post.id }}"
-  class="forum-post"
-  x-data="{
-    postId: {{ post.id }},
-    isDeleted: {{ post.deleted|yesno:'true,false' }},
-    isHidden: {{ post.visible|yesno:'false,true' }},
-    showHidden: false,
-    dropdownOpen: false,
-    editMode: false,
-
-    init() {
-      /* Регистрируем пост в Alpine store */
-      $store.forum.initPost(
-        {{ post.id }},
-        {{ post.is_liked_by_user|default:False|yesno:'true,false' }},
-        {{ post.likes.count }}
-      );
-
-      /* WebSocket: пост удалён */
-      window.addEventListener('ws:post-deleted', e => {
-        if (e.detail.post_id == this.postId) this.isDeleted = true;
-      });
-      /* WebSocket: пост отредактирован */
-      window.addEventListener('ws:post-edited', e => {
-        if (e.detail.post_id == this.postId) {
-          this.$el.querySelector('.post-content').innerHTML = e.detail.content;
-        }
-      });
-    }
-  }"
-  :class="{
-    'opacity-60': isDeleted || isHidden
-  }"
+  class="forum-post card bg-base-200 shadow-sm border border-base-content/5 overflow-hidden"
+  x-data="postItem({{ post.id }}, {{ post.is_liked_by_user|lower }}, {{ post.likes_count }})"
+  x-init="init()"
 >
 
-  {# ── Карточка поста ── #}
-  <article
-    class="card bg-base-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden"
-    :class="{
-      'border border-error/30': isDeleted,
-      'border border-warning/30': isHidden && !isDeleted,
-    }"
-  >
+  {# ── Шапка поста ── #}
+  <div class="card-body p-0">
 
-    {# ── DELETED OVERLAY ── #}
-    <template x-if="isDeleted">
-      <div class="absolute inset-0 z-10 post-deleted-overlay flex items-center justify-center">
-        <div class="bg-base-100/90 rounded-xl px-4 py-3 text-sm text-error flex items-center gap-2 shadow">
-          <i class="fa-solid fa-trash-can"></i>
-          <span>Пост удалён</span>
-        </div>
-      </div>
-    </template>
-
-    {# ── HIDDEN BADGE ── #}
-    <template x-if="isHidden && !isDeleted">
-      <div class="px-4 pt-2">
-        <div class="badge badge-warning badge-sm gap-1">
-          <i class="fa-solid fa-eye-slash text-[10px]"></i> Скрыт
-        </div>
-      </div>
-    </template>
-
-    {# ── Шапка поста: автор + мета ── #}
-    <div class="flex items-start gap-3 px-4 pt-4 pb-2">
+    {# Мета-строка: автор + дата + значки #}
+    <div class="flex items-center gap-3 px-4 pt-4 pb-2">
 
       {# Аватар #}
-      <div class="shrink-0">
-        <a href="{% url 'user' post.author.username %}">
-          <div class="avatar {% if post.author.profile.is_online %}avatar-online{% else %}avatar-offline{% endif %}">
-            <div class="w-10 rounded-full ring-2 ring-base-300">
-              <img
-                src="{{ post.author.profile.avatar.url }}"
-                alt="{{ post.author.profile.displayname }}"
-                loading="lazy"
-              >
-            </div>
+      <a href="{% url 'user' post.author.username %}" class="shrink-0">
+        <div class="avatar">
+          <div class="size-9 rounded-full ring-2 ring-base-content/10">
+            <img src="{{ post.author.profile.avatar.url }}" alt="{{ post.author.profile.displayname }}">
           </div>
-        </a>
-      </div>
+        </div>
+      </a>
 
-      {# Имя + мета + значки #}
+      {# Инфо автора и дата #}
       <div class="flex-1 min-w-0">
-        <div class="flex items-center flex-wrap gap-x-2 gap-y-0.5">
-          <a
-            href="{% url 'user' post.author.username %}"
-            class="font-semibold text-sm hover:text-primary transition-colors"
-          >
+        <div class="flex items-baseline gap-2 flex-wrap">
+          <a href="{% url 'user' post.author.username %}"
+             class="font-semibold text-sm hover:opacity-70 transition-opacity truncate">
             {{ post.author.profile.displayname }}
           </a>
-
-          {# Группа / роль #}
-          {% if post.author.groups.all %}
-            <span class="badge badge-ghost badge-xs text-[10px] uppercase tracking-wide">
-              {{ post.author.groups.first }}
-            </span>
-          {% endif %}
-
-          {# Закреплён #}
           {% if post.pinned %}
-            <span class="badge badge-info badge-xs gap-1">
-              <i class="fa-solid fa-thumbtack text-[9px]"></i>
-            </span>
+          <span class="badge badge-info badge-xs gap-1">
+            <i class="fa-solid fa-thumbtack text-[9px]"></i>закреплён
+          </span>
           {% endif %}
-
-          {# Отредактирован #}
-          {% if post.edited %}
-            <span class="text-[10px] opacity-40 flex items-center gap-1">
-              <i class="fa-solid fa-pen-to-square"></i>ред.
-            </span>
+          {% if not post.visible %}
+          <span class="badge badge-warning badge-xs gap-1">
+            <i class="fa-solid fa-eye-slash text-[9px]"></i>скрыт
+          </span>
+          {% endif %}
+          {% if post.deleted %}
+          <span class="badge badge-error badge-xs gap-1">
+            <i class="fa-solid fa-trash text-[9px]"></i>удалён
+          </span>
           {% endif %}
         </div>
-
-        {# Время #}
-        <p class="text-xs opacity-40 mt-0.5">
-          <a
-            href="#post-id-{{ post.id }}"
-            class="hover:opacity-70"
-            title="{{ post.created_at|date:'d.m.Y H:i:s' }}"
-          >
-            {{ post.created_at|naturaltime }}
-          </a>
+        <p class="text-xs opacity-50 mt-0.5">
+          <time datetime="{{ post.created_at|date:'c' }}">{{ post.created_at|date:"d M Y, H:i" }}</time>
+          {% if post.edited %}<span class="ml-1 opacity-70">· изменён</span>{% endif %}
         </p>
       </div>
 
-      {# Кнопки действий (hover) #}
+      {# Номер поста / ссылка #}
+      <a href="#{{ post.id }}"
+         class="text-xs opacity-30 hover:opacity-60 font-mono shrink-0"
+         aria-label="Ссылка на пост">
+        #{{ post.id }}
+      </a>
+
+      {# Кнопки действий (видны при ховере) #}
+      {% if post.flag.can_dropdown or user.is_authenticated %}
       <div class="post-actions flex items-center gap-1 shrink-0">
 
-        {# Reply #}
+        {# Ответить #}
         {% if user.is_authenticated and flags.can_post %}
           {% if not topic.closed or flags.can_post_closed %}
           <button
-            class="btn btn-ghost btn-xs btn-square tooltip tooltip-left"
-            data-tip="Ответить"
-            @click="openReplyForm({{ post.id }}, '{{ post.author.profile.displayname|escapejs }}')"
+            type="button"
+            class="btn btn-ghost btn-xs btn-square"
+            title="Ответить"
+            onclick="openReply({{ post.id }}, '{{ post.author.profile.displayname|escapejs }}')"
+            aria-label="Ответить на пост"
           >
-            <i class="fa-solid fa-reply text-sm"></i>
+            <i class="fa-solid fa-reply text-xs"></i>
           </button>
           {% endif %}
         {% endif %}
 
-        {# Dropdown: модераторские действия #}
+        {# Дропдаун модератора #}
         {% if post.flag.can_dropdown %}
-        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-          <button
-            class="btn btn-ghost btn-xs btn-square"
-            @click="open = !open"
-            :aria-expanded="open"
-          >
-            <i class="fa-solid fa-ellipsis-vertical"></i>
-          </button>
-
-          <ul
-            x-show="open"
-            x-cloak
-            x-transition:enter="transition ease-out duration-100"
-            x-transition:enter-start="opacity-0 scale-95"
-            x-transition:enter-end="opacity-100 scale-100"
-            x-transition:leave="transition ease-in duration-75"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0 scale-95"
-            class="dropdown-menu absolute right-0 top-full mt-1 bg-base-300 rounded-xl shadow-xl border border-base-content/10 w-48 z-30 py-1 overflow-hidden"
-          >
+        <div class="dropdown dropdown-end">
+          <label tabindex="0" class="btn btn-ghost btn-xs btn-square" aria-label="Действия с постом">
+            <i class="fa-solid fa-ellipsis text-xs"></i>
+          </label>
+          <ul tabindex="0" class="dropdown-content menu menu-xs bg-base-300 rounded-box shadow-lg w-44 z-50 p-1">
 
             {% if post.flag.can_edit %}
-            <li>
-              <button
-                class="w-full text-left px-3 py-2 text-sm hover:bg-base-content/10 flex items-center gap-2"
-                @click="openEditForm({{ post.id }}, '{{ category.slug|escapejs }}', {{ topic.id }}); dropdownOpen = false"
-              >
-                <i class="fa-solid fa-pencil w-4 text-center"></i>Редактировать
+            <li class="hidden"> {# Скрываем кнопку редактирования, так как она реализована через JS #}
+              <button type="button" class="w-full text-left"
+                      onclick="openEdit({{ post.id }}, '{{ post.content|escapejs }}')">
+                <i class="fa-solid fa-pen w-4"></i> Редактировать
               </button>
             </li>
             {% endif %}
 
             {% if post.flag.can_pin %}
-              {% if post.pinned %}
-              <li>
-                <form method="post" action="{% url 'post' category.slug topic.id post.id 'unpin' %}">
-                  {% csrf_token %}
-                  <button class="w-full text-left px-3 py-2 text-sm hover:bg-base-content/10 flex items-center gap-2">
-                    <i class="fa-solid fa-thumbtack-slash w-4 text-center"></i>Открепить
-                  </button>
-                </form>
-              </li>
-              {% else %}
-              <li>
-                <form method="post" action="{% url 'post' category.slug topic.id post.id 'pin' %}">
-                  {% csrf_token %}
-                  <button class="w-full text-left px-3 py-2 text-sm hover:bg-base-content/10 flex items-center gap-2">
-                    <i class="fa-solid fa-thumbtack w-4 text-center"></i>Закрепить
-                  </button>
-                </form>
-              </li>
-              {% endif %}
+            <li>
+              <form method="post" action="{% url 'post' category.slug topic.id post.id 'pin' %}">
+                {% csrf_token %}
+                <input type="hidden" name="page" value="{{ current_page }}">
+                <button type="submit" class="w-full text-left">
+                  <i class="fa-solid fa-thumbtack w-4"></i>
+                  {% if post.pinned %}Открепить{% else %}Закрепить{% endif %}
+                </button>
+              </form>
+            </li>
             {% endif %}
 
             {% if post.flag.can_hide %}
-              {% if post.visible %}
-              <li>
-                <form method="post" action="{% url 'post' category.slug topic.id post.id 'hide' %}">
-                  {% csrf_token %}
-                  <button class="w-full text-left px-3 py-2 text-sm hover:bg-base-content/10 flex items-center gap-2">
-                    <i class="fa-solid fa-eye-slash w-4 text-center"></i>Скрыть
-                  </button>
-                </form>
-              </li>
-              {% else %}
-              <li>
-                <form method="post" action="{% url 'post' category.slug topic.id post.id 'show' %}">
-                  {% csrf_token %}
-                  <button class="w-full text-left px-3 py-2 text-sm hover:bg-base-content/10 flex items-center gap-2">
-                    <i class="fa-solid fa-eye w-4 text-center"></i>Показать
-                  </button>
-                </form>
-              </li>
-              {% endif %}
+            <li>
+              <form method="post" action="{% url 'post' category.slug topic.id post.id 'hide' %}">
+                {% csrf_token %}
+                <input type="hidden" name="page" value="{{ current_page }}">
+                <button type="submit" class="w-full text-left">
+                  <i class="fa-solid fa-eye-slash w-4"></i>
+                  {% if post.visible %}Скрыть{% else %}Показать{% endif %}
+                </button>
+              </form>
+            </li>
             {% endif %}
 
             {% if post.flag.can_delete or post.flag.can_really_delete %}
-            <li class="border-t border-base-content/10 mt-1">
-              {% if post.flag.can_delete and not post.deleted %}
+            <li class="border-t border-base-content/10 mt-1 pt-1">
+              {% if post.flag.can_delete %}
               <form method="post" action="{% url 'post' category.slug topic.id post.id 'delete' %}">
                 {% csrf_token %}
-                <button class="w-full text-left px-3 py-2 text-sm text-error hover:bg-error/10 flex items-center gap-2">
-                  <i class="fa-solid fa-trash w-4 text-center"></i>Удалить (мягко)
+                <input type="hidden" name="page" value="{{ current_page }}">
+                <button type="submit" class="text-warning w-full text-left">
+                  <i class="fa-solid fa-ban w-4"></i> Удалить
                 </button>
               </form>
               {% endif %}
               {% if post.flag.can_really_delete %}
               <form method="post" action="{% url 'post' category.slug topic.id post.id 'true_delete' %}">
                 {% csrf_token %}
-                <button class="w-full text-left px-3 py-2 text-sm text-error hover:bg-error/10 flex items-center gap-2">
-                  <i class="fa-solid fa-trash-can w-4 text-center"></i>Удалить навсегда
+                <input type="hidden" name="page" value="{{ current_page }}">
+                <button type="submit" class="text-error w-full text-left"
+                        onclick="return confirm('Удалить пост безвозвратно?')">
+                  <i class="fa-solid fa-trash-can w-4"></i> Удалить навсегда
                 </button>
               </form>
               {% endif %}
@@ -253,83 +150,90 @@
         </div>
         {% endif %}
 
-      </div>{# /post-actions #}
-    </div>{# /header #}
+      </div>
+      {% endif %}
 
-    {# ── Цитата родителя ── #}
+    </div>
+
+    {# ── Цитата родительского поста ── #}
     {% if post.parent %}
     <div class="mx-4 mb-2">
-      <a
-        href="#post-id-{{ post.parent.id }}"
-        class="parent-quote block rounded-lg px-3 py-2 hover:bg-base-content/10 transition-colors cursor-pointer no-underline group"
-      >
-        <div class="flex items-center gap-2 mb-1 text-xs opacity-60 font-medium">
-          <i class="fa-solid fa-reply scale-x-[-1]"></i>
-          {{ post.parent.author.profile.displayname }}
-          {% for indicator in post.indicators %}
-            <span class="opacity-70">·</span>
-            {{ indicator|safe }}
-          {% endfor %}
-        </div>
-        <p class="text-xs opacity-70 leading-relaxed line-clamp-2 group-hover:opacity-90">
-          {{ post.parent_preview }}
+      <div class="parent-quote rounded-lg px-3 py-2">
+        <p class="text-xs font-semibold opacity-60 mb-1 flex items-center gap-1">
+          <i class="fa-solid fa-reply fa-flip-horizontal text-[10px]"></i>
+          <a href="#{{ post.parent.id }}" class="hover:opacity-80">
+            {{ post.parent.author.profile.displayname }}
+          </a>
         </p>
-      </a>
+        <p class="opacity-75 line-clamp-3">{{ post.parent_preview }}</p>
+        {% if post.indicators %}
+        <p class="mt-1 opacity-50 text-[11px] flex gap-2 flex-wrap">
+          {% for indicator in post.indicators %}{{ indicator|safe }}{% endfor %}
+        </p>
+        {% endif %}
+      </div>
     </div>
     {% endif %}
 
-    {# ── Контент поста ── #}
+    {# ── Тело поста ── #}
     <div class="px-4 pb-3">
-      {# post-content-body — таргет для inline-редактора и WS-обновлений #}
-      <div class="post-content-body post-content prose prose-sm max-w-none">
-        {{ post.content|safe }}
-      </div>
-      {# Placeholder пока пост редактируется #}
-      <div class="post-edit-placeholder" onclick="_edActivate()">
-        <i class="fa-solid fa-pencil animate-pulse"></i>
-        <span>Редактируется… нажми чтобы перейти к редактору</span>
-      </div>
+      {% if post.visible and not post.deleted %}
+        <div class="post-content prose prose-sm max-w-none">
+          {{ post.content|safe }}
+        </div>
+      {% elif post.deleted %}
+        <div class="post-deleted-overlay rounded-lg p-4 text-center opacity-60 text-sm">
+          <i class="fa-solid fa-ban mr-2"></i>Пост удалён
+        </div>
+      {% else %}
+        <div class="post-deleted-overlay rounded-lg p-4 text-center opacity-60 text-sm">
+          <i class="fa-solid fa-eye-slash mr-2"></i>Пост скрыт
+          {% if post.flag.can_hide %}
+          <form method="post" action="{% url 'post' category.slug topic.id post.id 'show' %}" class="inline ml-2">
+            {% csrf_token %}
+            <input type="hidden" name="page" value="{{ current_page }}">
+            <button type="submit" class="link text-xs">показать</button>
+          </form>
+          {% endif %}
+        </div>
+      {% endif %}
     </div>
 
-    {# ── Футер: лайки ── #}
-    <div class="px-4 pb-3 flex items-center gap-3">
+    {# ── Подвал поста: лайки ── #}
+    <div class="flex items-center gap-2 px-4 pb-4 border-t border-base-content/5 pt-2">
 
       {# Лайк #}
+      {% if user.is_authenticated %}
       <button
-        class="like-btn btn btn-ghost btn-xs gap-1.5 rounded-full px-2.5 transition-all duration-150"
-        :class="{
-          'text-error liked': $store.forum.getLiked({{ post.id }}),
-          'opacity-60': !$store.forum.getLiked({{ post.id }})
-        }"
-        {% if user.is_authenticated %}
-          @click="$store.forum.toggleLike({{ post.id }})"
-        {% else %}
-          onclick="document.getElementById('need-login-toast').showModal()"
-        {% endif %}
+        type="button"
+        class="like-btn btn btn-ghost btn-xs gap-1.5 px-2"
+        :class="{ 'liked text-error': $store.forum.getLiked({{ post.id }}) }"
+        @click="$store.forum.toggleLike({{ post.id }})"
         :aria-label="$store.forum.getLiked({{ post.id }}) ? 'Убрать лайк' : 'Поставить лайк'"
       >
-        <i
-          class="like-icon fa-heart text-sm"
-          :class="$store.forum.getLiked({{ post.id }}) ? 'fa-solid' : 'fa-regular'"
-        ></i>
-        <span
-          class="text-xs font-medium tabular-nums"
-          x-text="$store.forum.getCount({{ post.id }})"
-        ></span>
+        <i class="like-icon fa-heart text-sm"
+           :class="$store.forum.getLiked({{ post.id }}) ? 'fa-solid' : 'fa-regular'"></i>
+        <span x-text="$store.forum.getCount({{ post.id }})"></span>
       </button>
+      {% else %}
+      <span class="flex items-center gap-1 text-xs opacity-40 px-2">
+        <i class="fa-regular fa-heart"></i>
+        {{ post.likes_count }}
+      </span>
+      {% endif %}
 
-      {# Ссылка на пост #}
-      <a
-        href="#post-id-{{ post.id }}"
-        class="btn btn-ghost btn-xs gap-1.5 rounded-full px-2.5 opacity-40 hover:opacity-70"
-        title="Ссылка на пост"
-      >
-        <i class="fa-solid fa-link text-xs"></i>
-        <span class="text-xs">#{{ post.id }}</span>
-      </a>
-
-    </div>{# /footer #}
-
-  </article>
+    </div>
+  </div>
 
 </li>
+
+{# Инициализация лайков в Alpine store #}
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.store('forum').initPost(
+      {{ post.id }},
+      {{ post.is_liked_by_user|lower }},
+      {{ post.likes_count }}
+    );
+  });
+</script>
