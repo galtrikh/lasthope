@@ -9,10 +9,10 @@
                 <label class="tab">
                     <input type="radio" name="profile_tabs" checked="checked"/>
                     <i class="fa-solid fa-comments opacity-50 mr-2"></i>
-                    <span>Чаты</span>
+                    <span>Чаты <span class="badge badge-xs badge-secondary">SOON</span></span>
                 </label>
                 <div class="tab-content bg-base-100 border-base-300 p-6">
-                    Чаты (потом сделаю)
+                    Эта функция в разработке, скоро появится возможность общаться с другими пользователями в реальном времени
                 </div>
             {% else %}
                 <label class="tab">
@@ -149,14 +149,16 @@
                     </ul>
                 </div>
             {% endif %}
+            {% if user.is_superuser %}
             <label class="tab">
                 <input type="radio" name="profile_tabs" />
                 <i class="fa-solid fa-gear opacity-50 mr-2"></i>
-                Действия
+                <span>Действия <span class="badge badge-xs badge-secondary" >SOON</span> </span>
             </label>
             <div class="tab-content bg-base-100 border-base-300 p-6">
-                Действия с профилем, тоже потом сделаю
+                Еще немного и появится производить действия над профилет из этой вкладки
             </div>
+            {% endif %}
         </div>
         <div class="card w-1/3 bg-base-200">
             <div class="card-title">
