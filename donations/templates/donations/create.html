@@ -1,0 +1,929 @@
+{% extends 'layouts/main.html' %}
+{% load static %}
+
+{% block title %}Новый донат{% endblock %}
+
+{% block extra %}
+<style>
+  [x-cloak] { display: none !important; }
+
+  /* ─── Tag Picker ───────────────────────────────────────────── */
+  .tp-wrap    { position: relative; }
+  .tp-field {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 6px; min-height: 2.75rem; padding: 6px 10px;
+    border-radius: 0.75rem;
+    border: 1.5px solid oklch(var(--bc) / 0.2);
+    background: oklch(var(--b1));
+    cursor: text;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .tp-field:focus-within {
+    border-color: oklch(var(--p));
+    box-shadow: 0 0 0 3px oklch(var(--p) / 0.12);
+  }
+  .tp-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 8px 3px 10px;
+    border-radius: 99px; font-size: .78rem; font-weight: 600;
+    background: oklch(var(--p) / 0.12);
+    color: oklch(var(--p));
+    border: 1px solid oklch(var(--p) / 0.25);
+    animation: pill-pop .18s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes pill-pop { from { opacity:0; transform:scale(.6); } to { opacity:1; transform:scale(1); } }
+  .tp-pill-x {
+    display: flex; align-items: center; justify-content: center;
+    width: 15px; height: 15px; border-radius: 50%;
+    border: none; background: oklch(var(--p) / 0.2);
+    color: oklch(var(--p)); font-size: 9px; cursor: pointer;
+    transition: background .1s;
+  }
+  .tp-pill-x:hover { background: oklch(var(--p) / 0.45); }
+  .tp-input {
+    flex: 1; min-width: 130px; border: none; outline: none;
+    background: transparent; font-size: .875rem;
+    color: oklch(var(--bc)); padding: 2px 0;
+  }
+  .tp-input::placeholder { opacity: .4; }
+  .tp-drop {
+    position: absolute; top: calc(100% + 5px); left: 0; right: 0;
+    border: 1.5px solid oklch(var(--bc) / 0.1);
+    border-radius: .875rem;
+    box-shadow: 0 10px 40px oklch(0 0 0 / .18);
+    z-index: 100; overflow: hidden;
+    animation: drop-in .14s cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes drop-in { from { opacity:0; transform:translateY(-5px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+  .tp-opt {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; gap: 8px; cursor: pointer; font-size: .875rem;
+    transition: background .1s;
+  }
+  .tp-opt:hover, .tp-opt.is-hi { background: oklch(var(--p) / 0.09); }
+  .tp-opt.is-done { opacity: .35; pointer-events: none; }
+  .tp-opt-name { font-weight: 500; }
+  .tp-opt-meta { font-size: .72rem; opacity: .55; white-space: nowrap; }
+  .tp-empty { padding: 14px; text-align: center; font-size: .82rem; opacity: .45; }
+
+  /* ─── Amount & Breakdown ─────────────────────────────────── */
+  .amt-wrap {
+    display: flex; align-items: center; border-radius: .75rem;
+    border: 1.5px solid oklch(var(--bc) / 0.2);
+    background: oklch(var(--b1)); overflow: hidden;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .amt-wrap:focus-within { border-color: oklch(var(--p)); box-shadow: 0 0 0 3px oklch(var(--p) / 0.12); }
+  .amt-inp { flex: 1; border: none; outline: none; background: transparent; padding: .6rem .9rem; font-size: 1.2rem; font-weight: 700; font-variant-numeric: tabular-nums; color: oklch(var(--bc)); }
+  .amt-sym { padding: 0 .9rem; font-size: 1rem; font-weight: 600; opacity: .35; user-select: none; }
+  .breakdown { border-radius: .875rem; background: oklch(var(--b2)); border: 1px solid oklch(var(--bc) / 0.07); overflow: hidden; animation: fade-up .2s ease both; }
+  @keyframes fade-up { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+  .brow { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; font-size: .84rem; border-bottom: 1px solid oklch(var(--bc) / 0.055); }
+  .brow:last-child { border-bottom: none; }
+  .brow .lbl { opacity: .6; }
+  .brow .val { font-variant-numeric: tabular-nums; font-weight: 500; }
+  .brow.disc .val { color: oklch(var(--su)); }
+  .brow.total { background: oklch(var(--p) / 0.07); font-weight: 700; font-size: .95rem; }
+  .brow.total .val { color: oklch(var(--p)); }
+
+  /* ─── Donator status card ──────────────────────────────────── */
+  .dcard { border-radius: .875rem; padding: 12px 16px; display: flex; align-items: flex-start; gap: 12px; animation: fade-up .22s ease both; }
+  .dcard.new  { background: oklch(var(--in) / 0.08); border: 1px solid oklch(var(--in) / 0.2); }
+  .dcard.vip  { background: oklch(var(--su) / 0.08); border: 1px solid oklch(var(--su) / 0.25); }
+  .dcard-ico  { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+  .dcard.new .dcard-ico { background: oklch(var(--in) / 0.15); }
+  .dcard.vip .dcard-ico { background: oklch(var(--su) / 0.15); }
+</style>
+{% endblock %}
+
+{% block content %}
+{# Безопасная вставка JSON через Django #}
+{{ privileges|json_script:"priv-data" }}
+
+<div class="max-w-xl mx-auto px-3 sm:px-6 py-8">
+  <nav class="breadcrumbs text-sm opacity-50 mb-5">
+    <ul>
+      <li><a href="{% url 'donations:list' %}">Донаты</a></li>
+      <li>Новый донат</li>
+    </ul>
+  </nav>
+
+  <div class="card bg-base-200 shadow-lg" x-data="donationForm">
+    <div class="card-body p-6 sm:p-8 flex flex-col gap-6">
+      <h1 class="text-2xl font-bold tracking-tight">Новый донат</h1>
+
+      <form method="post" id="donation-form" novalidate>
+        {% csrf_token %}
+
+        <div class="flex flex-col gap-2">
+          <label for="id_nickname" class="text-sm font-semibold">Никнейм игрока</label>
+          <input id="id_nickname" name="nickname" type="text" autocomplete="off"
+              placeholder="Введите никнейм…" class="input input-bordered w-full"
+              x-model="nickname"
+              @input.debounce.300ms="onNickname(nickname)">
+          {% if form.nickname.errors %}<p class="text-error text-xs">{{ form.nickname.errors.0 }}</p>{% endif %}
+
+          <template x-if="dcard !== null">
+            <div :class="['dcard', dcard.vip ? 'vip' : 'new']">
+              <div class="dcard-ico"><span x-text="dcard.vip ? '⭐' : '👤'"></span></div>
+              <div class="flex flex-col gap-1 min-w-0">
+                <template x-if="!dcard.found">
+                  <div>
+                    <p class="text-sm font-semibold" style="color:oklch(var(--in))">Новый игрок</p>
+                    <p class="text-xs opacity-60">Первый донат — скидок нет</p>
+                  </div>
+                </template>
+                <template x-if="dcard.found">
+                  <div class="flex flex-col gap-1">
+                    <p class="text-sm font-semibold" style="color:oklch(var(--su))">
+                      Постоянный донатер
+                      <span x-show="dcard.tier" class="font-normal opacity-70 ml-1" x-text="'— ' + dcard.tier"></span>
+                    </p>
+                    <p class="text-xs opacity-65">Всего донатов: <b x-text="fmt(dcard.total) + ' ₽'"></b></p>
+                    <template x-if="dcard.discount > 0">
+                      <div class="flex items-center gap-2">
+                        <span class="badge badge-success badge-sm font-bold">−<span x-text="dcard.discount"></span>%</span>
+                        <span class="text-xs opacity-60">применится к сумме</span>
+                      </div>
+                    </template>
+                    <template x-if="dcard.found && dcard.discount === 0">
+                      <p class="text-xs opacity-50">Скидка ещё не накоплена</p>
+                    </template>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-semibold">Привилегии</label>
+          <template x-for="s in selected" :key="s.id">
+            <input type="hidden" name="privilegion" :value="s.id">
+          </template>
+
+          <div class="tp-wrap" @click.away="open = false">
+            <div class="tp-field" @click="$refs.tInput.focus()">
+              <template x-for="s in selected" :key="s.id">
+                <span class="tp-pill">
+                  <span x-text="s.name"></span>
+                  <span class="text-[10px] font-normal opacity-55" x-text="fmt(s.price) + ' ₽'"></span>
+                  <button type="button" class="tp-pill-x" @click.stop="remove(s.id)" :aria-label="'Удалить ' + s.name">✕</button>
+                </span>
+              </template>
+              <input x-ref="tInput" type="text" class="tp-input" placeholder="Поиск…"
+                     x-model="query" @focus="open = true" @input="open = true; hi = 0"
+                     @keydown.escape="open = false"
+                     @keydown.enter.prevent="pick(filtered[hi])"
+                     @keydown.arrow-down.prevent="hi = (hi + 1) % (filtered.length || 1)"
+                     @keydown.arrow-up.prevent="hi = (hi - 1 + (filtered.length || 1)) % (filtered.length || 1)"
+                     @keydown.backspace="onBS" autocomplete="off">
+            </div>
+
+            <div class="tp-drop bg-base-200" x-show="open && filtered.length > 0" x-cloak>
+              <template x-for="(opt, idx) in filtered" :key="opt.id">
+                <div class="tp-opt" :class="{'is-hi': hi === idx, 'is-done': isSelected(opt.id)}"
+                     @mouseenter="hi = idx" @click="pick(opt)">
+                  <span class="tp-opt-name" x-text="opt.name"></span>
+                  <span class="tp-opt-meta">
+                    <span x-text="fmt(opt.price) + ' ₽'"></span>
+                    &thinsp;·&thinsp;
+                    <span x-text="opt.duration_days + ' дн.'"></span>
+                  </span>
+                </div>
+              </template>
+            </div>
+
+            <div class="tp-dro bg-base-200 tp-empty" x-show="open && filtered.length === 0 && query.length > 0" x-cloak>
+              Ничего не найдено
+            </div>
+          </div>
+
+          <p class="text-xs opacity-50" x-show="selected.length > 0">
+            Срок действия: <b x-text="maxDays ? maxDays + ' дн.' : '—'"></b>
+          </p>
+          {% if form.privilegion.errors %}<p class="text-error text-xs">{{ form.privilegion.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <label for="id_amount" class="text-sm font-semibold">Сумма</label>
+            <button type="button" class="text-xs opacity-50 hover:opacity-80 transition-opacity"
+                    x-show="edited && autoAmt !== null"
+                    @click="amount = autoAmt; edited = false">
+              ↺ вернуть расчётную
+            </button>
+          </div>
+          <div class="amt-wrap">
+            <input id="id_amount" name="amount" type="number" step="0.01" min="0.01"
+                   class="amt-inp" placeholder="0.00" :value="amount"
+                   @input="onAmtInput($event.target.value)">
+            <span class="amt-sym">₽</span>
+          </div>
+          {% if form.amount.errors %}<p class="text-error text-xs">{{ form.amount.errors.0 }}</p>{% endif %}
+
+          <div class="breakdown" x-show="Number(amount) > 0 && (selected.length > 0 || (dcard && dcard.discount > 0))">
+            <template x-if="selected.length > 0">
+              <div class="brow"><span class="lbl">Стоимость привилегий</span><span class="val" x-text="fmt(basePrice) + ' ₽'"></span></div>
+            </template>
+            <template x-if="edited && Number(amount) !== basePrice">
+              <div class="brow"><span class="lbl">Указанная сумма</span><span class="val" x-text="fmt(amount) + ' ₽'"></span></div>
+            </template>
+            <template x-if="dcard && dcard.discount > 0">
+              <div class="brow disc">
+                <span class="lbl">Скидка <b x-text="'−' + dcard.discount + '%'"></b><span x-show="dcard.tier" class="opacity-60" x-text="' (' + dcard.tier + ')'"></span></span>
+                <span class="val" x-text="'−' + fmt(discountAmt) + ' ₽'"></span>
+              </div>
+            </template>
+            <div class="brow total"><span>Итого к оплате</span><span class="val" x-text="fmt(finalAmt) + ' ₽'"></span></div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="id_comment" class="text-sm font-semibold">Комментарий <span class="font-normal opacity-40 ml-1">необязательно</span></label>
+          <textarea id="id_comment" name="comment" rows="2" placeholder="Примечание…"
+                    class="textarea textarea-bordered w-full resize-none">{{ form.comment.value|default:'' }}</textarea>
+        </div>
+
+        <div class="flex gap-3 pt-1">
+          <button type="submit" class="btn btn-primary flex-1" :disabled="!canSubmit">
+            <i class="fa-solid fa-floppy-disk mr-2"></i>Сохранить
+          </button>
+          <a href="{% url 'donations:list' %}" class="btn btn-ghost">Отмена</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+  Alpine.data('donationForm', () => ({
+    nickname: '',
+    query: '',
+    open: false,
+    hi: 0,
+    selected: [],
+    amount: '',
+    autoAmt: null,
+    edited: false,
+    dcard: null,
+    ALL: [],
+
+    init() {
+      // 1. Загружаем JSON из Django
+      const el = document.getElementById('priv-data');
+      if (el) {
+        try { this.ALL = JSON.parse(el.textContent); } catch (e) { console.warn('Priv JSON error:', e); }
+      }
+
+      this.nickname = document.getElementById('id_nickname')?.value || '';
+
+      // 2. Восстанавливаем ник при ошибке валидации
+      const nick = document.getElementById('id_nickname')?.value;
+      if (nick) this.onNickname(nick);
+
+      // 3. Восстанавливаем выбранные привилегии из POST
+      {% if form.privilegion.value %}
+      const prePks = [{% for p in form.privilegion.value %}{{ p.pk }}{% if not forloop.last %},{% endif %}{% endfor %}];
+      prePks.forEach(pk => {
+        const opt = this.ALL.find(o => o.id === pk);
+        if (opt) this.selected.push(opt);
+      });
+      this.recalc();
+      {% endif %}
+    },
+
+    /* ── УМНЫЙ ПОИСК ────────────────────────────────────────── */
+    get filtered() {
+      if (!this.ALL.length) return [];
+      const q = this.query.trim().toLowerCase();
+
+      // Пустой запрос → показываем ВСЕ непривилегии
+      if (!q) {
+        return this.ALL.filter(o => !this.selected.some(s => s.id === o.id));
+      }
+
+      // Текст введён → фильтруем по имени
+      return this.ALL.filter(o =>
+        !this.selected.some(s => s.id === o.id) &&
+        o.name.toLowerCase().includes(q)
+      );
+    },
+
+    get basePrice() { return this.selected.reduce((s, o) => s + Number(o.price), 0); },
+    get maxDays() { return this.selected.reduce((m, o) => Math.max(m, o.duration_days), 0); },
+    get discountAmt() {
+      const base = this.edited ? Number(this.amount) : this.basePrice;
+      return +(base * (this.dcard?.discount ?? 0) / 100).toFixed(2);
+    },
+    get finalAmt() {
+      const base = this.edited ? Number(this.amount) : this.basePrice;
+      return Math.max(0, +(base - this.discountAmt).toFixed(2));
+    },
+    get canSubmit() {
+      return this.nickname.trim().length > 0 && Number(this.amount) > 0;
+    },
+
+    async onNickname(val) {
+      if (!val.trim()) { this.dcard = null; return; }
+      try {
+        const r = await fetch(`{% url 'donations:ajax_discount' %}?nickname=${encodeURIComponent(val)}`);
+        const d = await r.json();
+        this.dcard = {
+          found: d.found, total: d.total, discount: d.percent, tier: d.tier, vip: d.found && d.percent > 0,
+        };
+        if (!this.edited) this.recalc();
+      } catch { /* ignore */ }
+    },
+
+    isSelected(id) { return this.selected.some(s => s.id === id); },
+
+    pick(opt) {
+      if (!opt || this.isSelected(opt.id)) return;
+      this.selected.push(opt);
+      this.query = '';
+      this.open = false;
+      this.hi = 0;
+      this.$nextTick(() => this.$refs.tInput?.focus());
+      if (!this.edited) this.recalc();
+    },
+
+    remove(id) {
+      this.selected = this.selected.filter(s => s.id !== id);
+      if (!this.edited) this.recalc();
+    },
+
+    onBS() {
+      if (this.query === '' && this.selected.length > 0) {
+        this.selected.pop();
+        if (!this.edited) this.recalc();
+      }
+    },
+
+    recalc() {
+      if (this.basePrice > 0) { this.autoAmt = this.basePrice; this.amount = this.basePrice; }
+    },
+
+    onAmtInput(v) {
+      this.amount = v;
+      this.edited = this.autoAmt === null || Number(v) !== this.autoAmt;
+    },
+
+    fmt(v) {
+      const n = Number(v);
+      return isNaN(n) ? '0' : (n % 1 === 0 ? String(n) : n.toFixed(2));
+    },
+  }));
+});
+</script>
+{% endblock %}
+
+{% comment %} {% extends 'layouts/main.html' %}
+{% load static %}
+
+{% block title %}Новый донат{% endblock %}
+
+{% block extra %}
+<style>
+  /* ─── Tag Picker ───────────────────────────────────────────── */
+  .tp-wrap    { position: relative; }
+
+  .tp-field {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 6px; min-height: 2.75rem; padding: 6px 10px;
+    border-radius: 0.75rem;
+    border: 1.5px solid oklch(var(--bc) / 0.2);
+    background: oklch(var(--b1));
+    cursor: text;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .tp-field:focus-within {
+    border-color: oklch(var(--p));
+    box-shadow: 0 0 0 3px oklch(var(--p) / 0.12);
+  }
+
+  .tp-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 8px 3px 10px;
+    border-radius: 99px; font-size: .78rem; font-weight: 600;
+    background: oklch(var(--p) / 0.12);
+    color: oklch(var(--p));
+    border: 1px solid oklch(var(--p) / 0.25);
+    animation: pill-pop .18s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes pill-pop {
+    from { opacity: 0; transform: scale(.6); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .tp-pill-x {
+    display: flex; align-items: center; justify-content: center;
+    width: 15px; height: 15px; border-radius: 50%;
+    border: none; background: oklch(var(--p) / 0.2);
+    color: oklch(var(--p)); font-size: 9px; cursor: pointer;
+    transition: background .1s;
+  }
+  .tp-pill-x:hover { background: oklch(var(--p) / 0.45); }
+
+  .tp-input {
+    flex: 1; min-width: 130px;
+    border: none; outline: none; background: transparent;
+    font-size: .875rem; color: oklch(var(--bc)); padding: 2px 0;
+  }
+  .tp-input::placeholder { opacity: .4; }
+
+  .tp-drop {
+    position: absolute; top: calc(100% + 5px); left: 0; right: 0;
+    background: oklch(var(--b2));
+    border: 1.5px solid oklch(var(--bc) / 0.1);
+    border-radius: .875rem;
+    box-shadow: 0 10px 40px oklch(0 0 0 / .18);
+    z-index: 100; overflow: hidden;
+    animation: drop-in .14s cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes drop-in {
+    from { opacity: 0; transform: translateY(-5px) scale(.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .tp-opt {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; gap: 8px; cursor: pointer; font-size: .875rem;
+    transition: background .1s;
+  }
+  .tp-opt:hover,
+  .tp-opt.is-hi   { background: oklch(var(--p) / 0.09); }
+  .tp-opt.is-done { opacity: .35; pointer-events: none; }
+  .tp-opt-name    { font-weight: 500; }
+  .tp-opt-meta    { font-size: .72rem; opacity: .55; white-space: nowrap; }
+  .tp-empty {
+    padding: 14px; text-align: center;
+    font-size: .82rem; opacity: .45;
+  }
+
+  /* ─── Amount block ─────────────────────────────────────────── */
+  .amt-wrap {
+    display: flex; align-items: center;
+    border-radius: .75rem;
+    border: 1.5px solid oklch(var(--bc) / 0.2);
+    background: oklch(var(--b1));
+    overflow: hidden;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .amt-wrap:focus-within {
+    border-color: oklch(var(--p));
+    box-shadow: 0 0 0 3px oklch(var(--p) / 0.12);
+  }
+  .amt-inp {
+    flex: 1; border: none; outline: none; background: transparent;
+    padding: .6rem .9rem;
+    font-size: 1.2rem; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: oklch(var(--bc));
+  }
+  .amt-sym {
+    padding: 0 .9rem; font-size: 1rem;
+    font-weight: 600; opacity: .35; user-select: none;
+  }
+
+  /* ─── Breakdown ────────────────────────────────────────────── */
+  .breakdown {
+    border-radius: .875rem;
+    background: oklch(var(--b2));
+    border: 1px solid oklch(var(--bc) / 0.07);
+    overflow: hidden;
+    animation: fade-up .2s ease both;
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .brow {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 14px; font-size: .84rem;
+    border-bottom: 1px solid oklch(var(--bc) / 0.055);
+  }
+  .brow:last-child { border-bottom: none; }
+  .brow .lbl  { opacity: .6; }
+  .brow .val  { font-variant-numeric: tabular-nums; font-weight: 500; }
+  .brow.disc  .val { color: oklch(var(--su)); }
+  .brow.total { background: oklch(var(--p) / 0.07); font-weight: 700; font-size: .95rem; }
+  .brow.total .val { color: oklch(var(--p)); }
+
+  /* ─── Donator status card ──────────────────────────────────── */
+  .dcard {
+    border-radius: .875rem; padding: 12px 16px;
+    display: flex; align-items: flex-start; gap: 12px;
+    animation: fade-up .22s ease both;
+  }
+  .dcard.new  { background: oklch(var(--in) / 0.08); border: 1px solid oklch(var(--in) / 0.2); }
+  .dcard.vip  { background: oklch(var(--su) / 0.08); border: 1px solid oklch(var(--su) / 0.25); }
+  .dcard-ico  {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .dcard.new .dcard-ico { background: oklch(var(--in) / 0.15); }
+  .dcard.vip .dcard-ico { background: oklch(var(--su) / 0.15); }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+{# Данные привилегий для JS — рендерятся сервером один раз #}
+<script id="priv-data" type="application/json">
+[{% for p in form.fields.privilegion.queryset %}{"id":{{ p.pk }},"name":"{{ p.name|escapejs }}","price":{{ p.price }},"days":{{ p.duration_days }}}{% if not forloop.last %},{% endif %}{% endfor %}]
+</script>
+
+<div class="max-w-xl mx-auto px-3 sm:px-6 py-8">
+
+  <nav class="breadcrumbs text-sm opacity-50 mb-5">
+    <ul>
+      <li><a href="{% url 'donations:list' %}">Донаты</a></li>
+      <li>Новый донат</li>
+    </ul>
+  </nav>
+
+  <div class="card bg-base-200 shadow-lg"
+       x-data="donationForm()"
+       x-init="init()">
+    <div class="card-body p-6 sm:p-8 flex flex-col gap-6">
+
+      <h1 class="text-2xl font-bold tracking-tight">Новый донат</h1>
+
+      <form method="post" id="donation-form" novalidate>
+        {% csrf_token %}
+
+        <div class="flex flex-col gap-2">
+          <label for="id_nickname" class="text-sm font-semibold">
+            Никнейм игрока
+          </label>
+
+          <input
+            id="id_nickname"
+            name="nickname"
+            type="text"
+            autocomplete="off"
+            placeholder="Введите никнейм…"
+            class="input input-bordered w-full"
+            value="{{ form.nickname.value|default:'' }}"
+            @input.debounce.450ms="onNickname($event.target.value)"
+          >
+
+          {% if form.nickname.errors %}
+            <p class="text-error text-xs">{{ form.nickname.errors.0 }}</p>
+          {% endif %}
+
+          {# Статус донатера #}
+          <template x-if="dcard !== null">
+            <div :class="['dcard', dcard.vip ? 'vip' : 'new']">
+              <div class="dcard-ico">
+                <span x-text="dcard.vip ? '⭐' : '👤'"></span>
+              </div>
+              <div class="flex flex-col gap-1 min-w-0">
+
+                <template x-if="!dcard.found">
+                  <div>
+                    <p class="text-sm font-semibold" style="color:oklch(var(--in))">
+                      Новый игрок
+                    </p>
+                    <p class="text-xs opacity-60">Первый донат — скидок нет</p>
+                  </div>
+                </template>
+
+                <template x-if="dcard.found">
+                  <div class="flex flex-col gap-1">
+                    <p class="text-sm font-semibold" style="color:oklch(var(--su))">
+                      Постоянный донатер
+                      <span x-show="dcard.tier" class="font-normal opacity-70 ml-1"
+                            x-text="'— ' + dcard.tier"></span>
+                    </p>
+                    <p class="text-xs opacity-65">
+                      Всего донатов: <b x-text="fmt(dcard.total) + ' ₽'"></b>
+                    </p>
+                    <template x-if="dcard.discount > 0">
+                      <div class="flex items-center gap-2">
+                        <span class="badge badge-success badge-sm font-bold">
+                          −<span x-text="dcard.discount"></span>%
+                        </span>
+                        <span class="text-xs opacity-60">применится к сумме</span>
+                      </div>
+                    </template>
+                    <template x-if="dcard.found && dcard.discount === 0">
+                      <p class="text-xs opacity-50">Скидка ещё не накоплена</p>
+                    </template>
+                  </div>
+                </template>
+
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-semibold">Привилегии</label>
+
+          {# Скрытые инпуты для Django M2M — заполняются Alpine #}
+          <template x-for="s in selected" :key="s.id">
+            <input type="hidden" name="privilegion" :value="s.id">
+          </template>
+
+          <div class="tp-wrap" @click.outside="open = false">
+
+            <div class="tp-field" @click="$refs.tInput.focus()">
+              {# Выбранные тег-пилюли #}
+              <template x-for="s in selected" :key="s.id">
+                <span class="tp-pill">
+                  <span x-text="s.name"></span>
+                  <span class="text-[10px] font-normal opacity-55"
+                        x-text="fmt(s.price) + ' ₽'"></span>
+                  <button type="button" class="tp-pill-x"
+                          @click.stop="remove(s.id)"
+                          :aria-label="'Удалить ' + s.name">✕</button>
+                </span>
+              </template>
+
+              <input
+                x-ref="tInput"
+                type="text"
+                class="tp-input"
+                placeholder="Поиск…"
+                x-model="query"
+                @focus="open = true"
+                @input="open = true; hi = 0"
+                @keydown.escape="open = false"
+                @keydown.enter.prevent="pick(filtered[hi])"
+                @keydown.arrow-down.prevent="hi = (hi + 1) % (filtered.length || 1)"
+                @keydown.arrow-up.prevent="hi = (hi - 1 + (filtered.length || 1)) % (filtered.length || 1)"
+                @keydown.backspace="onBS"
+                autocomplete="off"
+              >
+            </div>
+
+            {# Dropdown #}
+            <div class="tp-drop" x-show="open && filtered.length > 0" x-cloak>
+              <template x-for="(opt, idx) in filtered" :key="opt.id">
+                <div
+                  class="tp-opt"
+                  :class="{'is-hi': hi === idx, 'is-done': isSelected(opt.id)}"
+                  @mouseenter="hi = idx"
+                  @click="pick(opt)"
+                >
+                  <span class="tp-opt-name" x-text="opt.name"></span>
+                  <span class="tp-opt-meta">
+                    <span x-text="fmt(opt.price) + ' ₽'"></span>
+                    &thinsp;·&thinsp;
+                    <span x-text="opt.days + ' дн.'"></span>
+                  </span>
+                </div>
+              </template>
+            </div>
+
+            {# Пусто #}
+            <div class="tp-drop tp-empty"
+                 x-show="open && filtered.length === 0 && query.length > 0" x-cloak>
+              Ничего не найдено
+            </div>
+
+          </div>
+
+          <p class="text-xs opacity-50" x-show="selected.length > 0">
+            Срок действия: <b x-text="maxDays ? maxDays + ' дн.' : '—'"></b>
+          </p>
+
+          {% if form.privilegion.errors %}
+            <p class="text-error text-xs">{{ form.privilegion.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <label for="id_amount" class="text-sm font-semibold">Сумма</label>
+            {# Кнопка «вернуть авто» появляется только если пользователь изменил #}
+            <button
+              type="button"
+              class="text-xs opacity-50 hover:opacity-80 transition-opacity"
+              x-show="edited && autoAmt !== null"
+              @click="amount = autoAmt; edited = false"
+            >
+              ↺ вернуть расчётную
+            </button>
+          </div>
+
+          <div class="amt-wrap">
+            <input
+              id="id_amount"
+              name="amount"
+              type="number"
+              step="0.01"
+              min="0.01"
+              class="amt-inp"
+              placeholder="0.00"
+              :value="amount"
+              @input="onAmtInput($event.target.value)"
+            >
+            <span class="amt-sym">₽</span>
+          </div>
+
+          {% if form.amount.errors %}
+            <p class="text-error text-xs">{{ form.amount.errors.0 }}</p>
+          {% endif %}
+
+          {# Breakdown #}
+          <div class="breakdown"
+               x-show="Number(amount) > 0 && (selected.length > 0 || dcard?.discount > 0)">
+
+            <template x-if="selected.length > 0">
+              <div class="brow">
+                <span class="lbl">Стоимость привилегий</span>
+                <span class="val" x-text="fmt(basePrice) + ' ₽'"></span>
+              </div>
+            </template>
+
+            <template x-if="edited && Number(amount) !== basePrice">
+              <div class="brow">
+                <span class="lbl">Указанная сумма</span>
+                <span class="val" x-text="fmt(amount) + ' ₽'"></span>
+              </div>
+            </template>
+
+            <template x-if="dcard?.discount > 0">
+              <div class="brow disc">
+                <span class="lbl">
+                  Скидка <b x-text="'−' + dcard.discount + '%'"></b>
+                  <span x-show="dcard.tier" class="opacity-60"
+                        x-text="' (' + dcard.tier + ')'"></span>
+                </span>
+                <span class="val" x-text="'−' + fmt(discountAmt) + ' ₽'"></span>
+              </div>
+            </template>
+
+            <div class="brow total">
+              <span>Итого к оплате</span>
+              <span class="val" x-text="fmt(finalAmt) + ' ₽'"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="id_comment" class="text-sm font-semibold">
+            Комментарий
+            <span class="font-normal opacity-40 ml-1">необязательно</span>
+          </label>
+          <textarea
+            id="id_comment"
+            name="comment"
+            rows="2"
+            placeholder="Примечание…"
+            class="textarea textarea-bordered w-full resize-none"
+          >{{ form.comment.value|default:'' }}</textarea>
+        </div>
+
+        <div class="flex gap-3 pt-1">
+          <button
+            type="submit"
+            class="btn btn-primary flex-1"
+            :disabled="!canSubmit"
+          >
+            <i class="fa-solid fa-floppy-disk mr-2"></i>Сохранить
+          </button>
+          <a href="{% url 'donations:list' %}" class="btn btn-ghost">Отмена</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<script>
+function donationForm() {
+  const ALL = JSON.parse(document.getElementById('priv-data').textContent);
+
+  return {
+    /* ── state ── */
+    query:    '',
+    open:     false,
+    hi:       0,
+    selected: [],   /* [{id, name, price, days}] */
+    amount:   '',
+    autoAmt:  null, /* последняя авто-рассчитанная сумма */
+    edited:   false,
+    dcard:    null, /* null = не проверяли | object = результат */
+
+    /* ── init ── */
+    init() {
+      /* Восстановление при ошибке формы */
+      const nick = document.getElementById('id_nickname')?.value;
+      if (nick) this.onNickname(nick);
+
+      /* Восстанавливаем выбранные привилегии из POST (после ошибки) */
+      {% if form.privilegion.value %}
+      const preSelected = [{% for p in form.privilegion.value %}{{ p }},{% endfor %}];
+      preSelected.forEach(id => {
+        const opt = ALL.find(o => o.id === id);
+        if (opt) this.selected.push(opt);
+      });
+      this.recalc();
+      {% endif %}
+    },
+
+    /* ── computed ── */
+    get filtered() {
+      const q = this.query.toLowerCase().trim();
+      return ALL.filter(o =>
+        !this.isSelected(o.id) &&
+        (q === '' || o.name.toLowerCase().includes(q))
+      );
+    },
+    get basePrice() {
+      return this.selected.reduce((s, o) => s + Number(o.price), 0);
+    },
+    get maxDays() {
+      return this.selected.reduce((m, o) => Math.max(m, o.days), 0);
+    },
+    get discountAmt() {
+      const base = this.edited ? Number(this.amount) : this.basePrice;
+      return +(base * (this.dcard?.discount ?? 0) / 100).toFixed(2);
+    },
+    get finalAmt() {
+      const base = this.edited ? Number(this.amount) : this.basePrice;
+      return Math.max(0, +(base - this.discountAmt).toFixed(2));
+    },
+    get canSubmit() {
+      return (
+        document.getElementById('id_nickname')?.value.trim().length > 0 &&
+        Number(this.amount) > 0
+      );
+    },
+
+    /* ── nickname ── */
+    async onNickname(val) {
+      if (!val.trim()) { this.dcard = null; return; }
+      try {
+        const r = await fetch(
+          `{% url 'donations:ajax_discount' %}?nickname=${encodeURIComponent(val)}`
+        );
+        const d = await r.json();
+        this.dcard = {
+          found:    d.found,
+          total:    d.total,
+          discount: d.percent,
+          tier:     d.tier,
+          vip:      d.found && d.percent > 0,
+        };
+        if (!this.edited) this.recalc();
+      } catch { /* ignore */ }
+    },
+
+    /* ── tag picker ── */
+    isSelected(id) { return this.selected.some(s => s.id === id); },
+
+    pick(opt) {
+      if (!opt || this.isSelected(opt.id)) return;
+      this.selected.push(opt);
+      this.query = '';
+      this.open  = false;
+      this.hi    = 0;
+      this.$nextTick(() => this.$refs.tInput?.focus());
+      if (!this.edited) this.recalc();
+    },
+
+    remove(id) {
+      this.selected = this.selected.filter(s => s.id !== id);
+      if (!this.edited) this.recalc();
+    },
+
+    onBS() {
+      if (this.query === '' && this.selected.length > 0) {
+        this.selected.pop();
+        if (!this.edited) this.recalc();
+      }
+    },
+
+    /* ── amount ── */
+    recalc() {
+      if (this.basePrice > 0) {
+        this.autoAmt = this.basePrice;
+        this.amount  = this.basePrice;
+      }
+    },
+
+    onAmtInput(v) {
+      this.amount = v;
+      /* Помечаем как ручное только если отличается от авто */
+      this.edited = this.autoAmt === null || Number(v) !== this.autoAmt;
+    },
+
+    /* ── helpers ── */
+    fmt(v) {
+      const n = Number(v);
+      if (isNaN(n)) return '0';
+      return n % 1 === 0 ? String(n) : n.toFixed(2);
+    },
+  };
+}
+</script>
+
+{% endblock %} {% endcomment %}

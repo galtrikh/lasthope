@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     'notification',
     'core',
     'rtchat',
+    'donations',
     'django_htmx',
     'user.apps.UserConfig',
     'forum_app',

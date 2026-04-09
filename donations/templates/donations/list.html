@@ -1,0 +1,476 @@
+{% extends 'layouts/main.html' %}
+{% load static %}
+
+{% block title %}Донаты{% endblock %}
+
+{% block extra %}
+<style>
+  /* ── Status row colours ── */
+  .row-expired  { border-left: 3px solid oklch(var(--er));  background: oklch(var(--er)  / 0.05); }
+  .row-waiting  { border-left: 3px solid oklch(var(--wa));  background: oklch(var(--wa)  / 0.04); }
+
+  /* ── Action button spinner ── */
+  .btn-act .spin  { display: none; }
+  .btn-act.busy   .spin  { display: inline-block; }
+  .btn-act.busy   .label { display: none; }
+
+  /* ── Tier badge ── */
+  .tier-pill { font-size: .68rem; padding: 2px 7px; border-radius: 99px; white-space: nowrap; }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-3 sm:px-6 py-6">
+
+  {# ── Header ── #}
+  <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+    <div>
+      <h1 class="text-2xl font-bold">Донаты</h1>
+      <p class="text-sm opacity-60 mt-0.5">
+        Всего: <b>{{ main_stats.total_count|default:0 }}</b>
+        &thinsp;·&thinsp;
+        Сумма: <b>{{ main_stats.total_sum|default:"0"|floatformat:2 }} ₽</b>
+      </p>
+    </div>
+    <a href="{% url 'donations:create' %}" class="btn btn-primary btn-sm gap-2">
+      <i class="fa-solid fa-plus"></i>Добавить донат
+    </a>
+  </div>
+
+  {% if expired %}
+  <div class="card bg-error/10 border border-error/30 shadow mb-6"
+       x-data="{ open: true }">
+    <div class="card-body p-0">
+
+      <button
+        type="button"
+        class="w-full flex items-center justify-between px-4 py-3
+               text-left hover:bg-error/10 transition-colors rounded-t-xl"
+        @click="open = !open"
+      >
+        <span class="flex items-center gap-2 font-semibold text-error">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          Требуют завершения
+          <span class="badge badge-error badge-sm">{{ expired.count }}</span>
+        </span>
+        <span class="text-sm opacity-60 mr-2">
+          {{ expired_stats.total_sum|default:"0"|floatformat:2 }} ₽
+        </span>
+        <i class="fa-solid fa-chevron-down transition-transform duration-200"
+           :class="open ? 'rotate-180' : ''"></i>
+      </button>
+
+      <div x-show="open" x-collapse>
+        <div class="overflow-x-auto">
+          <table class="table table-sm w-full">
+            <thead>
+              <tr class="text-xs opacity-60">
+                <th>Никнейм</th>
+                <th>Сумма</th>
+                <th>Привилегии</th>
+                <th>Истёк</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for d in expired %}
+              <tr class="row-expired" id="expired-row-{{ d.pk }}">
+                <td>
+                  <a href="{% url 'donations:donator' d.nickname %}"
+                     class="font-semibold hover:underline">{{ d.nickname }}</a>
+                </td>
+                <td class="font-mono font-semibold text-error whitespace-nowrap">
+                  {{ d.final_amount|floatformat:2 }} ₽
+                  {% if d.discount_applied %}
+                    <span class="text-xs opacity-55 line-through ml-1">
+                      {{ d.amount|floatformat:2 }}
+                    </span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="flex flex-wrap gap-1">
+                    {% for p in d.privilegion.all %}
+                      <span class="badge badge-outline badge-xs">{{ p.name }}</span>
+                    {% empty %}
+                      <span class="opacity-40 text-xs">—</span>
+                    {% endfor %}
+                  </div>
+                </td>
+                <td class="text-xs text-error font-mono whitespace-nowrap">
+                  {{ d.end_date|date:"d.m.Y H:i" }}
+                </td>
+                <td class="text-right">
+                  <form method="post"
+                        action="{% url 'donations:complete' d.pk %}"
+                        class="inline"
+                        onsubmit="return ajaxAction(event, this, 'expired-row-{{ d.pk }}', 'Донат завершён')">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="btn btn-success btn-xs gap-1 btn-act">
+                      <span class="loading loading-spinner loading-xs spin"></span>
+                      <span class="label flex items-center gap-1">
+                        <i class="fa-solid fa-check"></i>Завершить
+                      </span>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  {% endif %}
+
+
+  <div class="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-6">
+
+    <div>
+      {# ── Filters ── #}
+      <div class="card bg-base-200 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <form method="get">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              <div class="col-span-2 sm:col-span-1 lg:col-span-2">
+                {{ filter_form.search }}
+              </div>
+              {{ filter_form.status }}
+              {{ filter_form.privilegion }}
+              {{ filter_form.date_from }}
+              {{ filter_form.date_to }}
+              {{ filter_form.sort }}
+            </div>
+            <div class="flex gap-2 mt-3">
+              <button class="btn btn-primary btn-sm" type="submit">
+                <i class="fa-solid fa-magnifying-glass mr-1"></i>Применить
+              </button>
+              <a href="{% url 'donations:list' %}" class="btn btn-ghost btn-sm">
+                <i class="fa-solid fa-xmark mr-1"></i>Сбросить
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {# ── Donations table ── #}
+      {% if donations %}
+      <div class="overflow-x-auto rounded-xl border border-base-content/10 shadow-sm">
+        <table class="table table-sm w-full">
+          <thead class="bg-base-200">
+            <tr class="text-xs opacity-70">
+              <th>Никнейм</th>
+              <th>Сумма</th>
+              <th>Скидка</th>
+              <th>Привилегии</th>
+              <th>Создан</th>
+              <th>Активирован</th>
+              <th>Истекает</th>
+              <th>Статус</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in donations %}
+            <tr class="hover
+                       {% if d.status == Status.EXPIRED  %}row-expired{% endif %}
+                       {% if d.status == Status.WAITING  %}row-waiting{% endif %}"
+                id="row-{{ d.pk }}">
+
+              {# Никнейм #}
+              <td>
+                <a href="{% url 'donations:donator' d.nickname %}"
+                   class="font-semibold hover:underline">
+                  {{ d.nickname }}
+                </a>
+              </td>
+
+              {# Сумма #}
+              <td class="font-mono whitespace-nowrap">
+                <span class="font-semibold">{{ d.final_amount|floatformat:2 }} ₽</span>
+                {% if d.discount_applied %}
+                  <br>
+                  <span class="text-xs opacity-45 line-through">
+                    {{ d.amount|floatformat:2 }}
+                  </span>
+                {% endif %}
+              </td>
+
+              {# Скидка #}
+              <td class="text-center">
+                {% if d.discount_applied %}
+                  <span class="badge badge-success badge-sm">-{{ d.discount_applied }}%</span>
+                {% else %}
+                  <span class="opacity-30 text-xs">—</span>
+                {% endif %}
+              </td>
+
+              {# Привилегии #}
+              <td>
+                <div class="flex flex-wrap gap-1">
+                  {% for p in d.privilegion.all %}
+                    <span class="badge badge-outline badge-xs">{{ p.name }}</span>
+                  {% empty %}
+                    <span class="opacity-40 text-xs">—</span>
+                  {% endfor %}
+                </div>
+              </td>
+
+              {# Создан #}
+              <td class="text-xs opacity-55 whitespace-nowrap">
+                {{ d.date|date:"d.m.Y" }}
+              </td>
+
+              {# Активирован #}
+              <td class="text-xs whitespace-nowrap opacity-55">
+                {% if d.activated_at %}
+                  {{ d.activated_at|date:"d.m.Y" }}
+                {% else %}
+                  <span class="opacity-40">—</span>
+                {% endif %}
+              </td>
+
+              {# Истекает #}
+              <td class="text-xs whitespace-nowrap
+                         {% if d.status == Status.EXPIRED %}text-error font-semibold{% else %}opacity-55{% endif %}">
+                {% if d.end_date %}
+                  {{ d.end_date|date:"d.m.Y" }}
+                {% else %}
+                  <span class="opacity-40">—</span>
+                {% endif %}
+              </td>
+
+              {# Статус — badge #}
+              <td class="whitespace-nowrap">
+                {% if d.status == Status.WAITING %}
+                  <span class="badge badge-warning badge-sm">⏳ Ожидает</span>
+                {% elif d.status == Status.ACTIVE %}
+                  <span class="badge badge-success badge-sm">✅ Активен</span>
+                {% elif d.status == Status.EXPIRED %}
+                  <span class="badge badge-error badge-sm">⚠ Просрочен</span>
+                {% elif d.status == Status.COMPLETED %}
+                  <span class="badge badge-ghost badge-sm">✔ Завершён</span>
+                {% endif %}
+              </td>
+
+              {# Действия #}
+              <td class="text-right whitespace-nowrap">
+                {# WAITING → ACTIVE #}
+                {% if d.status == Status.WAITING %}
+                <form method="post"
+                      action="{% url 'donations:activate' d.pk %}"
+                      class="inline"
+                      onsubmit="return ajaxAction(event, this, 'row-{{ d.pk }}', null, updateRow)">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="btn btn-primary btn-xs gap-1 btn-act">
+                    <span class="loading loading-spinner loading-xs spin"></span>
+                    <span class="label flex items-center gap-1">
+                      <i class="fa-solid fa-play"></i>Активировать
+                    </span>
+                  </button>
+                </form>
+
+                {# EXPIRED → COMPLETED #}
+                {% elif d.status == Status.EXPIRED %}
+                <form method="post"
+                      action="{% url 'donations:complete' d.pk %}"
+                      class="inline"
+                      onsubmit="return ajaxAction(event, this, 'row-{{ d.pk }}', 'Донат завершён')">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="btn btn-success btn-xs gap-1 btn-act">
+                    <span class="loading loading-spinner loading-xs spin"></span>
+                    <span class="label flex items-center gap-1">
+                      <i class="fa-solid fa-check"></i>Завершить
+                    </span>
+                  </button>
+                </form>
+                {% endif %}
+              </td>
+
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex justify-end mt-2 text-sm opacity-55 gap-4">
+        <span>Записей: <b>{{ main_stats.total_count }}</b></span>
+        <span>Итого: <b>{{ main_stats.total_sum|default:"0"|floatformat:2 }} ₽</b></span>
+      </div>
+
+      {% else %}
+      <div class="py-16 text-center opacity-50">
+        <i class="fa-solid fa-inbox text-4xl block mb-3"></i>
+        <p>Донатов по заданным фильтрам нет</p>
+      </div>
+      {% endif %}
+    </div>
+
+
+    {# ── Sidebar ── #}
+    <div class="flex flex-col gap-4">
+
+      {# Топ донатеров #}
+      <div class="card bg-base-200 shadow-sm">
+        <div class="card-body p-4">
+          <h2 class="font-semibold text-sm mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-crown text-warning"></i>Топ донатеров
+          </h2>
+          <ol class="flex flex-col gap-2">
+            {% for d in top_donators %}
+            <li class="flex items-center gap-2 text-sm">
+              <span class="text-xs opacity-40 w-4 text-right shrink-0">
+                {{ forloop.counter }}.
+              </span>
+              <a href="{% url 'donations:donator' d.nickname %}"
+                 class="flex-1 truncate hover:underline font-medium">
+                {{ d.nickname }}
+              </a>
+              {# _tier задаётся в views.py, чтобы избежать N+1 #}
+              {% if d.tier %}
+              <span class="tier-pill"
+                    style="background:oklch(var(--s)/0.12);color:oklch(var(--s))">
+                {{ d.tier.label }}
+              </span>
+              {% endif %}
+              <span class="font-mono text-xs shrink-0 opacity-75">
+                {{ d.total_amount|floatformat:0 }} ₽
+              </span>
+            </li>
+            {% endfor %}
+          </ol>
+        </div>
+      </div>
+
+      {# Уровни скидок #}
+      {% if discount_tiers %}
+      <div class="card bg-base-200 shadow-sm">
+        <div class="card-body p-4">
+          <h2 class="font-semibold text-sm mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-tag text-success"></i>Уровни скидок
+          </h2>
+          <table class="table table-xs w-full">
+            <thead>
+              <tr class="opacity-50">
+                <th>Уровень</th>
+                <th>От суммы</th>
+                <th>Скидка</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for t in discount_tiers %}
+              <tr>
+                <td>{{ t.label|default:"—" }}</td>
+                <td class="font-mono">{{ t.min_total|floatformat:0 }} ₽</td>
+                <td>
+                  <span class="badge badge-success badge-sm">
+                    -{{ t.discount_percent }}%
+                  </span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+
+{# ── CSRF helper (нужен для AJAX форм) ── #}
+{% csrf_token %}
+
+<script>
+/* ── _csrf ─────────────────────────────────────────────────── */
+function _csrf() {
+  return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+}
+
+/* ── toast ──────────────────────────────────────────────────── */
+function _toast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.className = 'toast toast-top toast-center z-[9999]';
+  t.innerHTML = `<div class="alert alert-${type} shadow text-sm py-2 px-4"><span>${msg}</span></div>`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+/* ── Универсальный AJAX action для форм ─────────────────────
+   onsubmit="return ajaxAction(event, this, rowId, successMsg, callback)"
+
+   - event       — submit event
+   - form        — <form> element
+   - rowId       — id строки таблицы для удаления (или null)
+   - successMsg  — текст тоста (или null — не показывать)
+   - callback    — function(data, rowId) — дополнительная обработка
+─────────────────────────────────────────────────────────────── */
+async function ajaxAction(event, form, rowId, successMsg = null, callback = null) {
+  event.preventDefault();
+
+  const btn = form.querySelector('button[type=submit]');
+  btn?.classList.add('busy');
+  if (btn) btn.disabled = true;
+
+  const body = new FormData(form);
+
+  try {
+    const resp = await fetch(form.action, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      body,
+    });
+    const data = await resp.json();
+
+    if (data.ok) {
+      if (successMsg) _toast(successMsg);
+      if (callback) {
+        callback(data, rowId);
+      } else if (rowId) {
+        /* По умолчанию — удаляем строку из таблицы */
+        document.getElementById(rowId)?.remove();
+      }
+      /* Обновляем счётчик в блоке expired */
+      _decrementExpiredBadge();
+    } else {
+      _toast(data.error || 'Ошибка', 'error');
+      btn?.classList.remove('busy');
+      if (btn) btn.disabled = false;
+    }
+  } catch {
+    _toast('Ошибка сети', 'error');
+    btn?.classList.remove('busy');
+    if (btn) btn.disabled = false;
+  }
+
+  return false;
+}
+
+/* ── Обновление строки после активации (WAITING → ACTIVE) ───
+   Перезагружаем только строку через fetch partial или просто
+   обновляем страницу — самый надёжный способ.              ── */
+function updateRow(data, rowId) {
+  /* Самый надёжный: полная перезагрузка (строка изменила статус) */
+  window.location.reload();
+}
+
+/* ── Декремент счётчика в блоке Expired ─────────────────────── */
+function _decrementExpiredBadge() {
+  const badge = document.querySelector('.badge-error.badge-sm');
+  if (!badge) return;
+  const n = parseInt(badge.textContent, 10) - 1;
+  if (n <= 0) {
+    badge.closest('[x-data]')?.remove();
+  } else {
+    badge.textContent = n;
+  }
+}
+</script>
+{% endblock %}

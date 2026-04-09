@@ -1,0 +1,407 @@
+{% extends 'layouts/main.html' %}
+{% load static %}
+
+{% block title %}{{ donator.nickname }} — профиль донатера{% endblock %}
+
+{% block extra %}
+<style>
+  /* ── Timeline ── */
+  .timeline-line {
+    position: absolute;
+    left: 1.1rem; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, oklch(var(--p)/0.4), transparent);
+  }
+  .timeline-dot {
+    position: relative; z-index: 1;
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0;
+  }
+
+  /* ── Progress bar ── */
+  .tier-progress { height: 8px; border-radius: 99px; overflow: hidden; }
+  .tier-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, oklch(var(--p)), oklch(var(--s)));
+    border-radius: 99px;
+    transition: width .6s cubic-bezier(.16,1,.3,1);
+  }
+
+  /* ── Action button ── */
+  .btn-act .spin  { display: none; }
+  .btn-act.busy   .spin  { display: inline-block; }
+  .btn-act.busy   .label { display: none; }
+
+  /* ── Status colours ── */
+  .row-expired { border-left: 3px solid oklch(var(--er)); background: oklch(var(--er)/0.05); }
+  .row-waiting { border-left: 3px solid oklch(var(--wa)); background: oklch(var(--wa)/0.04); }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-3 sm:px-6 py-8">
+
+  {# ── Breadcrumb ── #}
+  <nav class="breadcrumbs text-sm opacity-50 mb-5">
+    <ul>
+      <li><a href="{% url 'donations:list' %}">Донаты</a></li>
+      <li>{{ donator.nickname }}</li>
+    </ul>
+  </nav>
+
+  <div class="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-5 mb-8">
+
+    {# ── Left: main info ── #}
+    <div class="card bg-base-200 shadow-md">
+      <div class="card-body p-6">
+
+        {# Header row #}
+        <div class="flex items-start gap-4 mb-4">
+          <div class="avatar placeholder">
+            <div class="bg-neutral text-neutral-content rounded-full w-14">
+              <span class="text-xl font-bold">
+                {{ donator.nickname|slice:":1"|upper }}
+              </span>
+            </div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h1 class="text-2xl font-bold truncate">{{ donator.nickname }}</h1>
+            {% if tier %}
+            <div class="flex items-center gap-2 mt-1">
+              <span class="badge badge-success badge-sm font-semibold">
+                ⭐ {{ tier.label }}
+              </span>
+              <span class="text-sm text-success font-bold">
+                -{{ tier.discount_percent }}% скидка
+              </span>
+            </div>
+            {% else %}
+            <p class="text-sm opacity-50 mt-1">Скидок пока нет</p>
+            {% endif %}
+          </div>
+        </div>
+
+        {# Stats grid #}
+        <div class="grid grid-cols-3 gap-3 mb-5">
+          <div class="bg-base-300 rounded-xl p-3 text-center">
+            <p class="text-xs opacity-55 mb-0.5">Всего донатов</p>
+            <p class="text-xl font-bold font-mono">
+              {{ donator.total_amount|floatformat:0 }} ₽
+            </p>
+          </div>
+          <div class="bg-base-300 rounded-xl p-3 text-center">
+            <p class="text-xs opacity-55 mb-0.5">Записей</p>
+            <p class="text-xl font-bold">{{ stats.total_count|default:0 }}</p>
+          </div>
+          <div class="bg-base-300 rounded-xl p-3 text-center">
+            <p class="text-xs opacity-55 mb-0.5">Скидка</p>
+            <p class="text-xl font-bold text-success">
+              {% if tier %}-{{ tier.discount_percent }}%{% else %}0%{% endif %}
+            </p>
+          </div>
+        </div>
+
+        {# ── Tier progress bar ── #}
+        {% if tiers %}
+        <div>
+          <div class="flex justify-between text-xs opacity-55 mb-1">
+            <span>Прогресс до следующего уровня</span>
+            <span class="font-mono">{{ donator.total_amount|floatformat:0 }} ₽</span>
+          </div>
+
+          {# Find next tier #}
+          {% with next_tier=None %}
+          {% for t in tiers %}
+            {% if donator.total_amount < t.min_total and not next_tier %}
+            {# This is the next tier #}
+            <div class="tier-progress bg-base-300 mb-1">
+              <div class="tier-progress-fill"
+                   style="width: {% widthratio donator.total_amount t.min_total 100 %}%">
+              </div>
+            </div>
+            <div class="flex justify-between text-xs opacity-50">
+              <span>{{ donator.total_amount|floatformat:0 }} ₽</span>
+              <span>{{ t.label }} при {{ t.min_total|floatformat:0 }} ₽</span>
+            </div>
+            {% endif %}
+          {% endfor %}
+          {% endwith %}
+
+          {# All tiers reached #}
+          {% comment %} {% if tier %}
+            {% with last_tier=tiers|last %}
+            {% if donator.total_amount >= last_tier.min_total %}
+            <div class="tier-progress bg-base-300 mb-1">
+              <div class="tier-progress-fill" style="width:100%"></div>
+            </div>
+            <p class="text-xs text-success opacity-80 text-center">
+              ✨ Максимальный уровень достигнут
+            </p>
+            {% endif %}
+            {% endwith %}
+          {% endif %} {% endcomment %}
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+    {# ── Right: discount tiers ── #}
+    <div class="card bg-base-200 shadow-md">
+      <div class="card-body p-5">
+        <h2 class="font-semibold text-sm mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-tag text-success"></i>Уровни скидок
+        </h2>
+        <div class="flex flex-col gap-2">
+          {% for t in tiers %}
+          <div class="flex items-center justify-between rounded-lg px-3 py-2
+                      {% if tier and t.pk == tier.pk %}bg-success/15 border border-success/30{% else %}bg-base-300{% endif %}">
+            <div class="flex items-center gap-2">
+              {% if tier and t.pk == tier.pk %}
+                <span class="text-success text-xs">★</span>
+              {% else %}
+                <span class="text-xs opacity-30">○</span>
+              {% endif %}
+              <div>
+                <p class="text-sm font-medium {% if tier and t.pk == tier.pk %}text-success{% endif %}">
+                  {{ t.label|default:"Уровень" }}
+                </p>
+                <p class="text-xs opacity-50">от {{ t.min_total|floatformat:0 }} ₽</p>
+              </div>
+            </div>
+            <span class="badge {% if tier and t.pk == tier.pk %}badge-success{% else %}badge-ghost{% endif %} badge-sm font-bold">
+              -{{ t.discount_percent }}%
+            </span>
+          </div>
+          {% empty %}
+          <p class="text-sm opacity-50 text-center py-4">Уровни не настроены</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>{# /grid #}
+
+
+  <div class="card bg-base-200 shadow-md">
+    <div class="card-body p-5">
+      <h2 class="font-semibold mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-clock-rotate-left opacity-60"></i>
+        История донатов
+        <span class="badge badge-ghost badge-sm ml-1">{{ stats.total_count|default:0 }}</span>
+      </h2>
+
+      {% if history %}
+      <div class="overflow-x-auto">
+        <table class="table table-sm w-full">
+          <thead>
+            <tr class="text-xs opacity-60">
+              <th>#</th>
+              <th>Сумма</th>
+              <th>Скидка</th>
+              <th>Привилегии</th>
+              <th>Создан</th>
+              <th>Активирован</th>
+              <th>Истекает</th>
+              <th>Статус</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in history %}
+            <tr class="hover
+                       {% if d.status == Status.EXPIRED  %}row-expired{% endif %}
+                       {% if d.status == Status.WAITING  %}row-waiting{% endif %}"
+                id="drow-{{ d.pk }}">
+
+              {# ID #}
+              <td class="font-mono text-xs opacity-40">#{{ d.pk }}</td>
+
+              {# Сумма #}
+              <td class="font-mono whitespace-nowrap">
+                <span class="font-bold">{{ d.final_amount|floatformat:2 }} ₽</span>
+                {% if d.discount_applied %}
+                  <br>
+                  <span class="text-xs opacity-45 line-through">
+                    {{ d.amount|floatformat:2 }}
+                  </span>
+                {% endif %}
+              </td>
+
+              {# Скидка #}
+              <td class="text-center">
+                {% if d.discount_applied %}
+                  <span class="badge badge-success badge-sm">-{{ d.discount_applied }}%</span>
+                {% else %}
+                  <span class="opacity-25 text-xs">—</span>
+                {% endif %}
+              </td>
+
+              {# Привилегии #}
+              <td>
+                <div class="flex flex-wrap gap-1">
+                  {% for p in d.privilegion.all %}
+                    <span class="badge badge-outline badge-xs">{{ p.name }}</span>
+                  {% empty %}
+                    <span class="opacity-40 text-xs">—</span>
+                  {% endfor %}
+                </div>
+              </td>
+
+              {# Создан #}
+              <td class="text-xs opacity-55 whitespace-nowrap">
+                {{ d.date|date:"d.m.Y" }}
+              </td>
+
+              {# Активирован #}
+              <td class="text-xs whitespace-nowrap opacity-55">
+                {% if d.activated_at %}
+                  {{ d.activated_at|date:"d.m.Y" }}
+                {% else %}
+                  <span class="opacity-40">—</span>
+                {% endif %}
+              </td>
+
+              {# Истекает #}
+              <td class="text-xs whitespace-nowrap
+                         {% if d.status == Status.EXPIRED %}text-error font-semibold{% else %}opacity-55{% endif %}">
+                {% if d.end_date %}{{ d.end_date|date:"d.m.Y" }}
+                {% else %}<span class="opacity-40">—</span>{% endif %}
+              </td>
+
+              {# Статус #}
+              <td class="whitespace-nowrap">
+                {% if d.status == Status.WAITING %}
+                  <span class="badge badge-warning badge-sm">⏳ Ожидает</span>
+                {% elif d.status == Status.ACTIVE %}
+                  <span class="badge badge-success badge-sm">✅ Активен</span>
+                {% elif d.status == Status.EXPIRED %}
+                  <span class="badge badge-error badge-sm">⚠ Просрочен</span>
+                {% elif d.status == Status.COMPLETED %}
+                  <span class="badge badge-ghost badge-sm">✔ Завершён</span>
+                {% endif %}
+              </td>
+
+              {# Действия #}
+              <td class="text-right whitespace-nowrap">
+                {% if d.status == Status.WAITING %}
+                <form method="post"
+                      action="{% url 'donations:activate' d.pk %}"
+                      class="inline"
+                      onsubmit="return ajaxAction(event, this, 'drow-{{ d.pk }}', null, reloadRow)">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="btn btn-primary btn-xs btn-act gap-1">
+                    <span class="loading loading-spinner loading-xs spin"></span>
+                    <span class="label flex items-center gap-1">
+                      <i class="fa-solid fa-play"></i>Активировать
+                    </span>
+                  </button>
+                </form>
+
+                {% elif d.status == Status.EXPIRED %}
+                <form method="post"
+                      action="{% url 'donations:complete' d.pk %}"
+                      class="inline"
+                      onsubmit="return ajaxAction(event, this, 'drow-{{ d.pk }}', 'Донат завершён')">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="btn btn-success btn-xs btn-act gap-1">
+                    <span class="loading loading-spinner loading-xs spin"></span>
+                    <span class="label flex items-center gap-1">
+                      <i class="fa-solid fa-check"></i>Завершить
+                    </span>
+                  </button>
+                </form>
+                {% endif %}
+              </td>
+
+            </tr>
+            {% endfor %}
+          </tbody>
+
+          {# Footer totals #}
+          <tfoot>
+            <tr class="font-semibold text-sm bg-base-300">
+              <td colspan="2" class="font-mono">
+                Итого: {{ stats.total_sum|default:"0"|floatformat:2 }} ₽
+              </td>
+              <td colspan="7"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {% else %}
+      <div class="py-12 text-center opacity-40">
+        <i class="fa-solid fa-inbox text-3xl block mb-2"></i>
+        <p class="text-sm">Донатов пока нет</p>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+
+
+{# CSRF для AJAX форм #}
+{% csrf_token %}
+
+<script>
+function _csrf() {
+  return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+}
+
+function _toast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.className = 'toast toast-top toast-center z-[9999]';
+  t.innerHTML = `<div class="alert alert-${type} shadow text-sm py-2 px-4"><span>${msg}</span></div>`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+async function ajaxAction(event, form, rowId, successMsg = null, callback = null) {
+  event.preventDefault();
+
+  const btn = form.querySelector('button[type=submit]');
+  btn?.classList.add('busy');
+  if (btn) btn.disabled = true;
+
+  try {
+    const resp = await fetch(form.action, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      body: new FormData(form),
+    });
+    const data = await resp.json();
+
+    if (data.ok) {
+      if (successMsg) _toast(successMsg);
+      if (callback) {
+        callback(data, rowId);
+      } else if (rowId) {
+        document.getElementById(rowId)?.remove();
+      }
+    } else {
+      _toast(data.error || 'Ошибка', 'error');
+      btn?.classList.remove('busy');
+      if (btn) btn.disabled = false;
+    }
+  } catch {
+    _toast('Ошибка сети', 'error');
+    btn?.classList.remove('busy');
+    if (btn) btn.disabled = false;
+  }
+
+  return false;
+}
+
+/* После активации — перезагружаем страницу, т.к. статус и даты изменились */
+function reloadRow() {
+  window.location.reload();
+}
+</script>
+{% endblock %}

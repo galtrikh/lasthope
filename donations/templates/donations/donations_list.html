@@ -1,0 +1,50 @@
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
+<style>
+    /* Немного кастомизации, чтобы теги выглядели как симпатичные бейджи */
+    .ts-control {
+        border: 1px solid #dbdbdb !important; /* под стиль Bulma/Bootstrap */
+        border-radius: 4px !important;
+        padding: 8px !important;
+    }
+    .ts-control .item {
+        background-color: #3273dc !important; /* Цвет бейджа */
+        color: white !important;
+        border-radius: 3px !important;
+        padding: 2px 8px !important;
+    }
+    .ts-control .item .remove {
+        color: white !important;
+    }
+</style>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <div>
+        <label>Никнейм:</label> {{ form.nickname }}
+    </div>
+    
+    <div style="margin-top: 15px;">
+        <label>Привилегии:</label>
+        {{ form.privilegion }} </div>
+    
+    <div style="margin-top: 15px;">
+        <label>Сумма:</label> {{ form.amount }}
+    </div>
+
+    <button type="submit" class="button is-primary">Создать запись</button>
+</form>
+
+<script>
+    // Инициализация Tom Select
+    new TomSelect("#privilege-tags", {
+        plugins: ['remove_button'], // Включает тот самый "крестик" для удаления
+        create: false,             // Запрещает пользователю создавать свои варианты
+        persist: false,
+        placeholder: "Нажмите, чтобы выбрать...",
+        maxItems: null,            // Сколько угодно элементов
+        allowEmptyOption: true,
+    });
+</script>
