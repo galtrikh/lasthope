@@ -9,6 +9,25 @@ from core.middleware import get_current_user
 from notification.services import notify
 from notification.models import Notification
 from django.core.exceptions import ValidationError
+from .models import Message
+
+class MessageForm(forms.Form):
+    text = forms.CharField( widget=forms.TextInput(attrs={
+        "class": "input input-bordered w-full",
+        "placeholder": "Сообщение...",
+        "autocomplete": "off",          # Отключает историю браузера/предложения
+        "autofocus": True,             # Фокус при загрузке страницы
+        "enterkeyhint": "send",        # На мобильных меняет Enter на кнопку "Отправить"
+        "spellcheck": "true",          # Включает проверку орфографии
+        "aria-label": "Поле ввода сообщения", # Доступность для скринридеров
+        "id": "chat-message-input",    # Удобный ID для JS
+    }), max_length=1000,                   # Защита от переполнения
+    required=True                      # Не даём отправить пустое сообщение
+    )
+
+    class Meta:
+        model = Message
+        fields = ['text']
 
 class SignUpForm(UserCreationForm):
     username = forms.CharField(

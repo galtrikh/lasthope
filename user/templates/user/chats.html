@@ -1,0 +1,44 @@
+{% if rooms %}
+    <ul class="list">
+        {% for room in rooms %}
+            <a href="?room_id={{ room.id }}">
+                <li class="list-row bg-base-200">
+                    <figure class="avatar">
+                        {% if room.sender == request.user %}
+                            {% if room.receiver.profile.avatar %}
+                                <img src="{{ room.receiver.profile.avatar.url }}" alt="Avatar" class="rounded-full w-12 h-12 bg-primary">
+                            {% else %}
+                                <div class="aspect-square rounded-full bg-primary w-full flex items-center justify-center w-12 h-12 text-4xl text-white font-bold">
+                                    {{ room.receiver.profile.displayname|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            {% if room.sender.profile.avatar %}
+                                <img src="{{ room.sender.profile.avatar.url }}" alt="Avatar" class="rounded-full w-12 h-12 bg-primary">
+                            {% else %}
+                                <div class="aspect-square rounded-full bg-primary w-full flex items-center justify-center w-12 h-12 text-4xl text-white font-bold">
+                                    {{ room.sender.profile.displayname|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </figure>
+                    <p>
+                    {% if room.sender == request.user %}
+                        {{ room.receiver.username }} [{{ room.receiver.profile.servername }}]
+                        {% if room.receiver.is_staff %}
+                            <span class="badge badge-secondary">Админ</span>
+                        {% endif %}
+                    {% else %}
+                        {{ room.sender.username }} [{{ room.sender.profile.servername }}]
+                        {% if room.sender.is_staff %}
+                            <span class="badge badge-secondary">Админ</span>
+                        {% endif %}
+                    {% endif %}
+                    </p>
+                </li>
+            </a>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p class="alert">Чатов пока нет</p>
+{% endif %}

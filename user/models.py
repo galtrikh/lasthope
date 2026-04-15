@@ -5,6 +5,10 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.utils import timezone
 
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 # Create your models here.
 class Profile(models.Model):
     user = models.OneToOneField(
@@ -15,7 +19,7 @@ class Profile(models.Model):
     displayname = models.CharField(blank=True, max_length=255, verbose_name='Отображаемое имя')
     servername = models.CharField(blank=True, max_length=255, verbose_name='Ник в игре')
     bio = models.TextField(null=True, blank=True, verbose_name='О себе')
-    avatar = models.ImageField(blank=True, upload_to='users/avatar/', default='users/avatar/0.jpg', verbose_name='Аватар')
+    avatar = models.ImageField(blank=True, upload_to='users/avatar/', null=True, verbose_name='Аватар')
     
     last_seen = models.DateTimeField(blank=True, null=True, verbose_name='Последняя активность')  # новое поле
 
@@ -63,3 +67,31 @@ class GroupProfile(models.Model):
     
     class Meta:
         verbose_name = 'Дополнительно'
+
+class Room(models.Model):
+    name = models.CharField(max_length=255, verbose_name='Название комнаты')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages', verbose_name='Отправитель сообщений из этой комнаты')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages', verbose_name='Получатель сообщений из этой комнаты')
+
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name = "Комната"
+        verbose_name_plural = "Комнаты"
+
+class Message(models.Model):
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='messages', verbose_name='Комната')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages_in_room', verbose_name='Отправитель')
+    content = models.TextField(verbose_name='Содержание сообщения')
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name='Дата и время отправки')
+    is_read = models.BooleanField(default=False, verbose_name='Прочитано')
+
+    def __str__(self):
+        return f'Message from {self.sender} in {self.room} at {self.timestamp}'
+    
+    class Meta:
+        verbose_name = "Сообщение"
+        verbose_name_plural = "Сообщения"

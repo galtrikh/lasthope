@@ -12,4 +12,5 @@ urlpatterns = [
     path('<str:username>', views.user, name='user'),
     path('<str:username>/notifications', views.notifications, name='notifications'),
     path('<str:username>/edit', views.edit, name='edit'),
+    path('<str:username>/create-chat', views.create_chat, name='create_chat'),
 ]

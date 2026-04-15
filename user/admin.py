@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from user.models import Profile
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import GroupAdmin
-from .models import GroupProfile
+from .models import GroupProfile, Message, Room
 from django.contrib import messages
 from .forms import NotificationTextForm
 from django.contrib.admin.sites import NotRegistered
@@ -88,3 +88,14 @@ except NotRegistered:
 
 admin.site.register(Group, GroupAdmin)
 
+class RoomAdmin(admin.ModelAdmin):
+    list_display = ('name', 'sender', 'receiver', 'created_at')
+    search_fields = ('name', 'sender__username', 'receiver__username')
+
+admin.site.register(Room, RoomAdmin)
+
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ('room', 'sender', 'content', 'timestamp', 'is_read')
+    search_fields = ('room__name', 'sender__username', 'content')
+
+admin.site.register(Message, MessageAdmin)

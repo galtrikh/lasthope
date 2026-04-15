@@ -3,16 +3,20 @@
 <!--===========CONTENT=============-->
 
 {% block content %}
-    <div class="p-10 flex space-x-10">
-        <div class="tabs tabs-lift w-full">
+    <div class="p-10 flex space-x-10 h-full">
+        <div class="tabs tabs-lift w-full h-full card bg-base-200">
             {% if is_owner %}
                 <label class="tab">
                     <input type="radio" name="profile_tabs" checked="checked"/>
                     <i class="fa-solid fa-comments opacity-50 mr-2"></i>
-                    <span>Чаты <span class="badge badge-xs badge-secondary">SOON</span></span>
+                    <span>Чаты</span>
                 </label>
-                <div class="tab-content bg-base-100 border-base-300 p-6">
-                    Эта функция в разработке, скоро появится возможность общаться с другими пользователями в реальном времени
+                <div class="tab-content bg-base-100 border-base-300 p-6 h-full">
+                    {% if 'room_id' in request.GET %}
+                        {% include "user/chat.html" %}
+                    {% else %}
+                        {% include "user/chats.html" %}
+                    {% endif %}
                 </div>
             {% else %}
                 <label class="tab">
@@ -21,7 +25,14 @@
                     <span>Чат</span>
                 </label>
                 <div class="tab-content bg-base-100 border-base-300 p-6">
-                    Чат
+                    {% if chat_exists %}
+                        {% include "user/chat.html" %}
+                    {% else %}
+                        <form method="post" action="{% url 'create_chat' profile_user.username %}">
+                            {% csrf_token %}
+                            <button class="btn btn-primary"><i class="fa-solid fa-plus"></i>Создать чат</button>
+                        </form>
+                    {% endif %}
                 </div>
             {% endif %}
             <label class="tab">
@@ -165,7 +176,13 @@
                 <ul class="list">
                     <li class="list-row">
                         <div class="avatar w-24 {% if profile.is_online %} avatar-online {% else %} avatar-offline {% endif %}">
-                            <img src="{{profile.avatar.url}}" class="aspect-square rounded-full"/>
+                            {% if profile.avatar %}
+                                <img src="{{profile.avatar.url}}" class="aspect-square rounded-full"/>
+                            {% else %}
+                                <div class="aspect-square rounded-full bg-neutral-500 w-full flex items-center justify-center text-6xl text-white font-bold">
+                                    {{profile.displayname|slice:":1"|upper}}
+                                </div>  
+                            {% endif %}
                         </div>
                         <div>
                             <p class="text-lg">{{profile.displayname}} [{{profile.servername}}]</p>
@@ -181,14 +198,14 @@
                     </li>
                 </ul>
             </div>
-            <div class="card-body">
+            {% comment %} <div class="card-body">
                 <fieldset class="fieldset bg-base-100 border-base-300 rounded-box w-full border p-4">
                     <legend class="fieldset-legend">О себе</legend>
                     <label class="label">
                         {{profile.bio}}
                     </label>
                 </fieldset>
-            </div>
+            </div> {% endcomment %}
             {% if is_owner %}
                 <div class="card-actions p-4 justify-end">
                     <form method="post" action="{% url 'logout' %}">
