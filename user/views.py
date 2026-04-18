@@ -112,7 +112,14 @@ def user(request, username):
     else:
         form = EditForm(instance=profile_user.profile, user=profile_user)
         email_form = EditUserForm(instance=profile_user)
-        if 'room_id' in request.GET:
+        if profile_user != request.user:
+            room = Room.objects.filter(
+                Q(sender=request.user, receiver=profile_user) | Q(sender=profile_user, receiver=request.user)
+            ).first()
+            if room and (room.sender == request.user or room.receiver == request.user):
+                messages = Message.objects.filter(room=room).order_by('timestamp')
+            msg_form = MessageForm()
+        elif 'room_id' in request.GET:
             room = Room.objects.filter(id=request.GET['room_id']).first()
             if room and (room.sender == request.user or room.receiver == request.user):
                 messages = Message.objects.filter(room=room).order_by('timestamp')
