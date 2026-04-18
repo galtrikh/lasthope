@@ -5,35 +5,10 @@
 
 {% block layout_content %}
     {% load static %}
-    <div id="app" class="flex flex-col min-h-screen"
-    x-data="{
-        headerOpen: false,
-    }">
+    <div id="app" class="flex flex-col min-h-screen">
         <header class="navbar shadow-sm bg-base-100 z-1 border-b border-base-300">
             <div class="navbar-start">
-                <div class="dropdown">
-                    <label class="btn btn-circle btn-ghost swap swap-rotate">
-                    <!-- this hidden checkbox controls the state -->
-                        <input type="checkbox" @click="headerOpen = !headerOpen" :checked="headerOpen"/>
-
-                        <!-- hamburger icon -->
-                        <svg class="swap-off fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M96 160C96 142.3 110.3 128 128 128L512 128C529.7 128 544 142.3 544 160C544 177.7 529.7 192 512 192L128 192C110.3 192 96 177.7 96 160zM96 320C96 302.3 110.3 288 128 288L512 288C529.7 288 544 302.3 544 320C544 337.7 529.7 352 512 352L128 352C110.3 352 96 337.7 96 320zM544 480C544 497.7 529.7 512 512 512L128 512C110.3 512 96 497.7 96 480C96 462.3 110.3 448 128 448L512 448C529.7 448 544 462.3 544 480z"/></svg>
-
-                        <!-- close icon -->
-                        <svg
-                            class="swap-on fill-current"
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="32"
-                            height="32"
-                            viewBox="0 0 512 512">
-                            <polygon
-                            points="400 145.49 366.51 112 256 222.51 145.49 112 112 145.49 222.51 256 112 366.51 145.49 400 256 289.49 366.51 400 400 366.51 289.49 256 400 145.49" />
-                        </svg>
-                    </label>
-                </div>
-            </div>
-            <div class="navbar-center">
-                <div class="tooltip tooltip-bottom">
+                <div class="tooltip tooltip-right">
                     <div class="tooltip-content z-10">
                         <div class="animate-bounce text-2xl font-black -rotate-6">
                             <span class="text-rotate duration-1500">
@@ -48,12 +23,23 @@
                         </div>
                     </div>
                     <div class="indicator indicator-start">
-                        <span class="indicator-item badge badge-sm badge-primary -rotate-12">BETA</span>
                         <a href="{% url 'main' %}" class="cursor-pointer text-xl flex items-start font-bold">
                             <img src="{% static 'logo_mini.png' %}" alt="LastHope v34" class="w-20"/>
                         </a>
                     </div>
                 </div>
+            </div>
+            <div class="navbar-center">
+                <ul class="menu menu-horizontal px-1 gap-2">
+                <li><a href="{% url 'forum' %}" class="btn btn-ghost btn-primary"><i class="fa-solid fa-comments"></i><span class="hidden md:inline">Форум</span></a></li>
+                <li><a href="{% url 'news' %}" class="btn btn-ghost btn-primary"><i class="fa-solid fa-newspaper"></i><span class="hidden md:inline">Новости</span></a></li>
+                <li><a href="{% url 'help' %}" class="btn btn-ghost btn-primary"><i class="fa-solid fa-question-circle"></i><span class="hidden md:inline">Помощь</span></a></li>
+               
+                {% if user.is_staff %}
+                    <li><a href="{% url 'admin:index' %}" class="btn btn-ghost btn-primary"><i class="fa-solid fa-shield-alt"></i><span class="hidden md:inline">Админка</span></a></li>
+                    <li><a href="{% url 'donations:list' %}" class="btn btn-ghost btn-primary"><i class="fa-solid fa-donate"></i><span class="hidden md:inline">Донаты</span></a></li>
+                {% endif %}
+            </ul>
             </div>
             <div class="navbar-end space-x-4 pr-5">
                 {% comment %} <div class="dropdown dropdown-end">
@@ -73,6 +59,7 @@
                             <li>Уведомлений пока нет</li>
                         </ul>
                     </div>
+                    <a href="{% url 'user' request.user.username %}" class="btn btn-ghost"><i class="fa-solid fa-user"></i><span class="hidden md:inline">Профиль</span></a>
                 {% else %}
                     <div class="tooltip tooltip-bottom" data-tip="Вход">
                         <a href="{% url 'login' %}" class="btn btn-ghost btn-circle"><i class="fa-solid fa-right-to-bracket text-lg"></i></a>
@@ -80,23 +67,7 @@
                 {% endif %}
             </div>
         </header>
-        <header class="navbar shadow-sm bg-base-100 z-1"
-            x-cloak
-            x-show="headerOpen"
-            x-collapse>
-            <ul class="menu menu-horizontal px-1 gap-2">
-                <li><a href="{% url 'forum' %}" class="btn btn-ghost btn-secondary">Форум</a></li>
-                <li><a href="{% url 'news' %}" class="btn btn-ghost btn-secondary">Новости</a></li>
-                <li><a href="{% url 'help' %}" class="btn btn-ghost btn-secondary">Помощь</a></li>
-                {% if user.is_authenticated %}
-                    <li><a href="{% url 'user' request.user.username %}" class="btn btn-ghost btn-secondary">Профиль</a></li>
-                {%endif%}
-                {% if user.is_staff %}
-                    <li><a href="{% url 'admin:index' %}" class="btn btn-ghost btn-secondary">Админка</a></li>
-                    <li><a href="{% url 'donations:list' %}" class="btn btn-ghost btn-secondary">Донаты</a></li>
-                {% endif %}
-            </ul>
-        </header>
+       
         {% comment %} <header class="flex md:flex-nowrap justify-between items-center tb-block py-1 mt-4 text-white z-11">         
             <div class="p-3 px-5 text-xl font-bold select-none md:text-nowrap w-fit"><i class="fa-solid fa-pepper-hot mr-2 text-neutral-500"></i>Последняя надежда V34</div>
             <button id="burger_btn" class="block p-2 px-3 rounded-xl hover:bg-sky-500 md:hidden"></button>
@@ -210,6 +181,9 @@
             </nav>
             <aside>
                 <p>Copyright © {% now 'Y' %} - Все права защищены</p>
+            </aside>
+            <aside>
+                <p>Нашел баг? Пиши сюда >> <a href="{% url 'user' 'nikto' %}" class="link link-hover link-secondary">Разработчик</a></p> 
             </aside>
         </footer>
         {% comment %} <div class="lg:hidden dock dock-sm">

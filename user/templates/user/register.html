@@ -40,6 +40,14 @@
                         {% for error in form.username.errors %}
                             <p class="text-error text-sm">{{ error }}</p>
                         {% endfor %}
+                        <label class="label">Email</label>
+                        <label class="input validator w-full">
+                            <i class="fa-regular fa-envelope opacity-50"></i>
+                            {{ form.email }}
+                        </label>
+                        {% for error in form.email.errors %}
+                            <p class="text-error text-sm">{{ error }}</p>
+                        {% endfor %}
                         <label class="label">Пароль</label>
                         <label class="input validator w-full">
                             <i class="fa-solid fa-lock opacity-50"></i>

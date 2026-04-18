@@ -19,21 +19,61 @@
 <!--===========CONTENT=============-->
 
 {% block layout_content %}
-<div class="flex items-center justify-center w-screen h-screen">
-    <div class="flex flex-col space-y-7">
-        <h1 class="w-full text-center font-bold text-[30px]">Заполните профиль</h1>
-
-        <form method="post">
-            {% csrf_token %}
-            <input
-                type="text"
-                name="servername"
-                placeholder="Ник на сервере"
-                required
-                class="border-2 rounded p-2 px-4 border-sky-800 focus:outline-0"
-            >
-            <button type="submit" class="bg-sky-950 p-2 px-4 rounded ml-5 hover:bg-sky-800 cursor-pointer">Продолжить</button>
-        </form>
+<div class="hero min-h-screen bg-base-200 p-4">
+  <div class="hero-content flex-col lg:flex-row-reverse gap-10 max-w-6xl">
+    
+    <!-- Левая часть: Текст и пояснение -->
+    <div class="text-center lg:text-right space-y-4 flex-1">
+      <span class="badge badge-primary badge-outline py-3">Дальше нельзя двигаться без заполнения профиля</span>
+      <h1 class="text-4xl font-bold text-base-content">
+        Заполните профиль
+      </h1>
+      <p class="text-base-content/70 max-w-md mx-auto lg:mx-0">
+        Укажите ваш никнейм на сервере. Он будет виден другим пользователям.
+      </p>
     </div>
+
+    <!-- Правая часть: Форма в карточке -->
+    <div class="card w-full max-w-md bg-base-100 shadow-xl border border-base-300 flex-1">
+      <form method="post" class="card-body p-8">
+        {% csrf_token %}
+        
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text font-medium">Ник на сервере</span>
+            <span class="label-text-alt text-base-content/50">Обязательно</span>
+          </label>
+          
+          <div class="relative">
+            <label class="input input-bordered w-full pl-10 focus:ring-2 focus:ring-primary/40 transition-all">
+              <i class="fa-solid fa-user-astronaut opacity-50 absolute left-3 top-1/2 transform -translate-y-1/2"></i>
+            <input
+              type="text"
+              name="servername"
+              placeholder="Например: NightWolf_99"
+              required
+              class=""
+              maxlength="32"
+            >
+            </label>
+          </div>
+          <label class="label">
+            <span class="label-text-alt text-base-content/60">Изменить больше нельзя</span>
+          </label>
+        </div>
+
+        <div class="form-control mt-6">
+          <button type="submit" class="btn btn-primary w-full gap-2 group">
+            <span>Продолжить</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
 </div>
 {% endblock %}

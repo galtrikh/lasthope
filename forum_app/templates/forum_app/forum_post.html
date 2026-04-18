@@ -27,8 +27,7 @@
       {# Инфо автора и дата #}
       <div class="flex-1 min-w-0">
         <div class="flex items-baseline gap-2 flex-wrap">
-          <a href="{% url 'user' post.author.username %}"
-             class="font-semibold text-sm hover:opacity-70 transition-opacity truncate">
+          <a href="{% url 'user' post.author.username %}" class="font-semibold text-sm hover:opacity-70 transition-opacity truncate">
             {{ post.author.profile.displayname }}
           </a>
           {% if post.pinned %}

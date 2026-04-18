@@ -40,11 +40,23 @@
                 <i class="fa-solid fa-user-pen opacity-50 mr-2"></i>
                 Редактировать профиль
             </label>
-            <div class="tab-content bg-base-100 border-base-300 p-6">
+            <div class="tab-content bg-base-100 border-base-300 p-6" x-data="{email: '{{ email_form.email.value|default_if_none:''|yesno:"" }}'}">
                 <form method="post" enctype="multipart/form-data" class="fieldset">
                     {% csrf_token %}
                     <label for="displayname" class="label">Имя пользователя</label>
                     {{ form.displayname }}
+                    <label for="email" class="label">Email</label>
+                    <input
+                        type="email"
+                        name="email"
+                        id="email"
+                        class="input validator w-full"
+                        value="{{ email_form.email.value|default_if_none:'' }}"
+                    />
+                    <div class="alert alert-warning mt-2 mb-4" x-show="!email">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Срочно! заполните email, иначе не сможете восстановить пароль при потере доступа к аккаунту!
+                    </div>
                     <label for="bio" class="label">О себе</label>
                     {{ form.bio }}
                     <fieldset class="fieldset">
@@ -87,77 +99,146 @@
                     История уведомлений
                 </label>
                 <div class="tab-content bg-base-100 border-base-300 p-6">
-                    <ul class="list">
-                        {% for n in notifications %}
-                            <li class="list-row">
-                                {% if n.actor_type == 'user' %}
-                                    {% if n.type == 'admin' %}
-                                        <strong>{{ n.get_type_display }}</strong><br>
-                                    {% elif n.type == 'other' %}
-                                        <strong>{{ n.get_type_display }}</strong><br>
-                                    {% elif n.type == 'poll_finished' %}
-                                        <strong>{{ n.get_type_display }}</strong><br>
-                                    {% else %}
-                                        <strong>{{ n.get_type_display }} пользователем <a href="{% url 'user' n.actor.username %}" class="link link-hover">{{n.actor.profile.displayname}}</a></strong><br>
-                                    {% endif %}
-                                {% elif n.actor_type == 'system' %}
-                                    <strong>[СИСТЕМА] {{ n.get_type_display }}</strong><br>
-                                {% endif %}
+                    <div class="space-y-2 max-w-4xl mx-auto">
+    {% for n in notifications %}
+        <div class="group bg-base-100 rounded-xl border border-base-300 hover:border-primary/40 transition-all duration-200 shadow-sm hover:shadow-md p-4">
+            <div class="flex items-start gap-4">
+                
+                <!-- Левая колонка: Иконка типа -->
+                <div class="flex-shrink-0 pt-1">
+                    {% if n.type == 'post_pinned' or n.type == 'topic_pinned' %}
+                        <span class="badge badge-primary gap-1.5">📌 Закреплено</span>
+                    {% elif n.type == 'post_unpinned' or n.type == 'topic_unpinned' %}
+                        <span class="badge badge-warning gap-1.5">📍 Откреплено</span>
+                    {% elif n.type == 'post_deleted' or n.type == 'topic_deleted' or n.type == 'topic_closed' %}
+                        <span class="badge badge-error gap-1.5">🗑️ Удалено/Закрыто</span>
+                    {% elif n.type == 'topic_unclosed' %}
+                        <span class="badge badge-success gap-1.5">🔓 Открыто</span>
+                    {% elif n.type == 'permission_added' or n.type == 'group_added' %}
+                        <span class="badge badge-success gap-1.5">✅ Выдано</span>
+                    {% elif n.type == 'permission_removed' or n.type == 'group_removed' %}
+                        <span class="badge badge-warning gap-1.5">⛔ Отозвано</span>
+                    {% elif n.type == 'warning' %}
+                        <span class="badge badge-warning gap-1.5">⚠️ Предупреждение</span>
+                    {% elif n.type == 'moderation_alert' %}
+                        <span class="badge badge-accent gap-1.5">🛡️ Модерация</span>
+                    {% elif n.type == 'poll_finished' %}
+                        <span class="badge badge-secondary gap-1.5">📊 Опрос</span>
+                    {% elif n.actor_type == 'system' %}
+                        <span class="badge badge-info gap-1.5">🔧 Система</span>
+                    {% else %}
+                        <span class="badge badge-ghost gap-1.5">👤 Действие</span>
+                    {% endif %}
+                </div>
 
-                                {% if n.type == 'post_pinned' %}
-                                    Ваш пост был закреплён в теме "{{n.content_object.topic.title}}"
-                                {% elif n.type == 'post_unpinned' %}
-                                    Ваш пост был откреплен в теме "{{n.content_object.topic.title}}"
-                                {% elif n.type == 'post_edited' %}
-                                    {% if n.content_object and n.content_object.topic %}
-                                    Ваш <a href="{% url 'topic' cat_slug=n.content_object.topic.category.slug topic_id=n.content_object.topic.id %}#post-{{n.content_object.id}}" class="text-sky-700">пост</a> был изменен в теме "{{n.content_object.topic.title}}"
-                                    {% else %}
-                                    Ваш пост был изменен и удален
-                                    {% endif %}
-                                {% elif n.type == 'post_deleted' %}
-                                    <span>Ваш пост</span>
-                                    <div class="list-col-wrap">
-                                        <div class="bg-base-200 p-2 rounded-box italic">{{n.data.content|safe|slice:300}}</div>
-                                        <br> был удалён в теме "{{n.data.topic}}"
-                                    </div>
-                                {% elif n.type == 'topic_deleted' %}
-                                    Тема «{{ n.data.title }}» удалена
-                                {% elif n.type == 'topic_pinned' %}
-                                    Тема «{{ n.content_object.title }}» закреплена
-                                {% elif n.type == 'topic_unpinned' %}
-                                    Тема «{{ n.content_object.title }}» откреплена
-                                {% elif n.type == 'topic_closed' %}
-                                    Тема «{{ n.content_object.title }}» закрыта
-                                {% elif n.type == 'topic_unclosed' %}
-                                    Тема «{{ n.content_object.title }}» открыта
-                                {% elif n.type == 'permission_added' %}
-                                    Вам выданы права: {% for p in n.data.permissions %}<br>"{{ p }}" {% endfor %}
-                                {% elif n.type == 'permission_removed' %}
-                                    У вас отозваны права: {% for p in n.data.permissions %}<br>"{{ p }}" {% endfor %}
-                                {% elif n.type == 'group_added' %}
-                                    Вам выданы роли: {% for g in n.data.groups %}<br>"{{ g }}" {% endfor %}
-                                {% elif n.type == 'group_removed' %}
-                                    У вас отозваны роли: {% for g in n.data.groups %}<br>"{{ g }}" {% endfor %}
-                                {% elif n.type == 'poll_finished' %}
-                                    Голосование "{{n.data.title}}" было окончено. Выбран вариант "{{n.data.winner}}" 
-                                {% elif n.type == 'admin' %}
-                                    {{ n.data.text }}
-                                {% elif n.type == 'other' %}
-                                    {{n.data.data}}
-                                {% elif n.type == 'warning' %}
-                                    {{n.data.reason}}
-                                {% elif n.type == 'moderation_alert' %}
-                                    Нарушение [{{n.data.author}}] id поста - {{n.data.post_id}}
-                                {% endif %}
+                <!-- Правая колонка: Контент -->
+                <div class="flex-1 min-w-0 space-y-2">
+                    <!-- Шапка: Источник + Тип -->
+                    <div class="flex items-center gap-2 flex-wrap text-xs">
+                        {% if n.actor_type == 'user' and n.actor %}
+                            <a href="{% url 'user' n.actor.username %}" class="link link-hover font-medium text-primary">
+                                {{ n.actor.profile.displayname|default:n.actor.username }}
+                            </a>
+                            <span class="text-base-content/40">•</span>
+                        {% endif %}
+                        <span class="bg-base-200 px-2 py-0.5 rounded-md text-base-content/60 font-medium">
+                            {{ n.get_type_display|default:"Уведомление" }}
+                        </span>
+                    </div>
 
-                                <div class="text-xs text-neutral">
-                                    {{ n.created_at }}
-                                </div>
-                            </li>
-                        {% empty %}
-                            <div class="p-2">Нет уведомлений</div>
-                        {% endfor %}
-                    </ul>
+                    <!-- Основной текст -->
+                    <div class="text-sm text-base-content/80 space-y-2">
+                        {% if n.type == 'post_pinned' %}
+                            Ваш пост закреплён в теме <a href="#" class="link link-primary font-medium">«{{ n.content_object.topic.title|default:"—" }}»</a>
+                        {% elif n.type == 'post_unpinned' %}
+                            Ваш пост откреплён в теме <a href="#" class="link link-primary font-medium">«{{ n.content_object.topic.title|default:"—" }}»</a>
+                        {% elif n.type == 'post_edited' %}
+                            {% if n.content_object and n.content_object.topic %}
+                                Ваш <a href="{% url 'topic' cat_slug=n.content_object.topic.category.slug topic_id=n.content_object.topic.id %}#post-{{n.content_object.id}}" class="link link-accent font-medium">пост</a> был изменён в теме «{{ n.content_object.topic.title }}»
+                            {% else %}
+                                Ваш пост был изменён и удалён
+                            {% endif %}
+                        {% elif n.type == 'post_deleted' %}
+                            <div>Ваш пост удалён в теме «{{ n.data.topic|default:"—" }}»</div>
+                            {% if n.data.content %}
+                                <blockquote class="bg-base-200/60 border-l-4 border-base-300 p-3 rounded-r-md text-xs italic text-base-content/60 line-clamp-3">
+                                    {{ n.data.content|safe|truncatechars:150 }}
+                                </blockquote>
+                            {% endif %}
+                        {% elif n.type == 'topic_deleted' %}
+                            Тема <span class="font-medium">«{{ n.data.title|default:"—" }}»</span> удалена
+                        {% elif n.type == 'topic_pinned' %}
+                            Тема <a href="#" class="link link-primary font-medium">«{{ n.content_object.title|default:"—" }}»</a> закреплена
+                        {% elif n.type == 'topic_unpinned' %}
+                            Тема <a href="#" class="link link-primary font-medium">«{{ n.content_object.title|default:"—" }}»</a> откреплена
+                        {% elif n.type == 'topic_closed' %}
+                            Тема <a href="#" class="link link-primary font-medium">«{{ n.content_object.title|default:"—" }}»</a> закрыта
+                        {% elif n.type == 'topic_unclosed' %}
+                            Тема <a href="#" class="link link-primary font-medium">«{{ n.content_object.title|default:"—" }}»</a> снова открыта
+                        {% elif n.type == 'permission_added' %}
+                            Вам выданы права:
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                {% for p in n.data.permissions|default:"" %}
+                                    <span class="badge badge-success badge-outline badge-xs">{{ p }}</span>
+                                {% endfor %}
+                            </div>
+                        {% elif n.type == 'permission_removed' %}
+                            У вас отозваны права:
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                {% for p in n.data.permissions|default:"" %}
+                                    <span class="badge badge-error badge-outline badge-xs">{{ p }}</span>
+                                {% endfor %}
+                            </div>
+                        {% elif n.type == 'group_added' %}
+                            Вам назначены роли:
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                {% for g in n.data.groups|default:"" %}
+                                    <span class="badge badge-info badge-outline badge-xs">{{ g }}</span>
+                                {% endfor %}
+                            </div>
+                        {% elif n.type == 'group_removed' %}
+                            У вас отозваны роли:
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                {% for g in n.data.groups|default:"" %}
+                                    <span class="badge badge-error badge-outline badge-xs">{{ g }}</span>
+                                {% endfor %}
+                            </div>
+                        {% elif n.type == 'poll_finished' %}
+                            Голосование <span class="font-medium">«{{ n.data.title|default:"—" }}»</span> завершено. Победил вариант: 
+                            <span class="badge badge-secondary badge-sm mt-1">{{ n.data.winner|default:"—" }}</span>
+                        {% elif n.type == 'admin' %}
+                            {{ n.data.text|default:"" }}
+                        {% elif n.type == 'other' %}
+                            {{ n.data.data|default:"" }}
+                        {% elif n.type == 'warning' %}
+                            <span class="text-warning font-medium">Причина:</span> {{ n.data.reason|default:"" }}
+                        {% elif n.type == 'moderation_alert' %}
+                            Нарушение от <span class="font-medium">{{ n.data.author|default:"—" }}</span>. ID поста: 
+                            <code class="bg-base-200 px-1.5 py-0.5 rounded text-xs font-mono">{{ n.data.post_id|default:"—" }}</code>
+                        {% endif %}
+                    </div>
+
+                    <!-- Дата -->
+                    <div class="flex items-center gap-2 text-xs text-base-content/40 pt-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>{{ n.created_at|timesince }} назад</span>
+                        <span class="hidden sm:inline text-base-content/30">• {{ n.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="text-center py-16 bg-base-100 rounded-xl border border-base-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-base-content/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <p class="text-lg font-semibold text-base-content/70">Нет уведомлений</p>
+            <p class="text-sm text-base-content/40 mt-1">Здесь будут появляться важные события</p>
+        </div>
+    {% endfor %}
+</div>
                 </div>
             {% endif %}
             {% if user.is_superuser %}

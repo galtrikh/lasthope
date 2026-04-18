@@ -43,6 +43,8 @@ DEBUG = env('DEBUG')
 # РЕЖИМ ТЕХНИЧЕСКИХ РАБОТ, ПЕРЕД ВКЛЮЧЕНИЕМ ОБЯЗАТЕЛЬНО ВОЙТИ КАК SUPERUSER ИЛИ СО СПЕЦИАЛЬНЫМ ПРАВОМ
 MAINTENANCE_MODE = True
 
+SITE_ID = 1
+
 # DEV_IPS = [
 #     '127.0.0.1', 
 #     '46.147.98.45', #WI-FI дома
@@ -83,6 +85,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'django.contrib.sites',
     'guardian',
     'main.apps.MainConfig'
 ]
@@ -105,6 +108,7 @@ LOGGING = {
         },
     },
 }
+
 
 # if DEBUG:
 #     INSTALLED_APPS += ["django_browser_reload"]
@@ -410,7 +414,7 @@ ROOT_URLCONF = 'forum.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -458,6 +462,15 @@ else:
             }
     }
 
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.yandex.ru'  # SMTP server host
+EMAIL_PORT = 465  # SMTP server port (587 for TLS, 465 for SSL)
+EMAIL_USE_TLS = False  # True for TLS, False for SSL
+EMAIL_HOST_USER = 'lasthopev34@yandex.ru'  # SMTP server username
+EMAIL_HOST_PASSWORD = env('EMAIL_PASSWORD')  # SMTP server password
+EMAIL_USE_SSL = True  # Set to True if using SSL
+DEFAULT_FROM_EMAIL = 'lasthopev34@yandex.ru'  # Default sender email address
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

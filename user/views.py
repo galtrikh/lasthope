@@ -3,8 +3,9 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
-from .forms import SignUpForm, LoginForm, EditForm, MessageForm
+from .forms import SignUpForm, LoginForm, EditForm, MessageForm, EditUserForm
 from django.contrib.auth.models import Permission
+from django.db.models import Count, Q, Max
 
 from .models import Room, Message
 
@@ -15,7 +16,9 @@ def register(request):
         form = SignUpForm(request.POST)
         print(form.errors)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.email = form.cleaned_data['email']
+            user.save()
             user.user_permissions.add(
                 Permission.objects.get(codename='can_post', content_type__app_label='forum_app'),
                 Permission.objects.get(codename='can_edit_post', content_type__app_label='forum_app'),
@@ -100,21 +103,40 @@ def user(request, username):
         # 2. Редактирование профиля
         else:
             form = EditForm(request.POST, request.FILES, instance=profile_user.profile, user=profile_user)
+            email_form = EditUserForm(request.POST, instance=profile_user)
+            if email_form.is_valid():
+                email_form.save()
             if form.is_valid():
                 form.save()
                 return redirect('user', username=profile_user.username)
     else:
         form = EditForm(instance=profile_user.profile, user=profile_user)
+        email_form = EditUserForm(instance=profile_user)
         if 'room_id' in request.GET:
             room = Room.objects.filter(id=request.GET['room_id']).first()
             if room and (room.sender == request.user or room.receiver == request.user):
                 messages = Message.objects.filter(room=room).order_by('timestamp')
+                
+                # ✅ ОДНОЙ строкой помечаем прочитанными ВСЕ сообщения НЕ от меня
+                Message.objects.filter(
+                    room=room, is_read=False
+                ).exclude(sender=request.user).update(is_read=True)
+                
                 msg_form = MessageForm()
         if is_owner:
-            rooms = Room.objects.filter(sender=request.user) | Room.objects.filter(receiver=request.user)
+            rooms = Room.objects.filter(
+                Q(sender=request.user) | Q(receiver=request.user)).annotate(
+                # Замените 'message' на ваш related_name (обычно 'messages' или 'message_set')
+                unread_count=Count(
+                    'messages', 
+                    filter=Q(messages__is_read=False) & ~Q(messages__sender_id=request.user.id)
+                ),
+                last_message_time=Max('messages__timestamp')
+            ).order_by('-unread_count', '-last_message_time')  # Комнаты с непрочитанными всплывут вверх                
     chat_exists = Room.objects.filter(sender=request.user, receiver=profile_user).exists() or Room.objects.filter(sender=profile_user, receiver=request.user).exists()
     data = {
         'form': form,
+        'email_form': email_form,
         'profile_user' : profile_user,
         'profile': profile_user.profile,
         'groups': profile_user.groups.all(),

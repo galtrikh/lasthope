@@ -22,19 +22,37 @@
                             {% endif %}
                         {% endif %}
                     </figure>
-                    <p>
-                    {% if room.sender == request.user %}
-                        {{ room.receiver.username }} [{{ room.receiver.profile.servername }}]
-                        {% if room.receiver.is_staff %}
-                            <span class="badge badge-secondary">Админ</span>
+                    <div>
+                        <p class="badge">
+                        {% if room.sender == request.user %}
+                            {{ room.receiver.username }} [{{ room.receiver.profile.servername }}]
+                            {% if room.receiver.is_staff %}
+                                <span class="badge badge-secondary">Админ</span>
+                            {% endif %}
+                        {% else %}
+                            {{ room.sender.username }} [{{ room.sender.profile.servername }}]
+                            {% if room.sender.is_staff %}
+                                <span class="badge badge-secondary">Админ</span>
+                            {% endif %}
                         {% endif %}
-                    {% else %}
-                        {{ room.sender.username }} [{{ room.sender.profile.servername }}]
-                        {% if room.sender.is_staff %}
-                            <span class="badge badge-secondary">Админ</span>
+                        </p>
+                        <p class="list-col-wrap">
+                        {% if room.messages.last %}
+                            {% if room.messages.last.sender == request.user %} <span class="badge badge-primary badge-sm badge-outline">Ты: </span> {% endif %}
+                            {{ room.messages.last.content|truncatechars:30 }}
+                            {% if room.messages.last.is_read %}
+                                <i class="fa-solid fa-check-double opacity-50"></i>
+                            {% else %}
+                                <i class="fa-solid fa-check opacity-50"></i>
+                            {% endif %}
+                        {% else %}
+                            Нет сообщений
                         {% endif %}
+                        </p>
+                    </div>
+                    {% if room.messages.last and room.messages.last.sender != request.user and not room.messages.last.is_read %}
+                        <p class="badge badge-secondary badge-sm badge-outline">{{room.unread_count}}</p>
                     {% endif %}
-                    </p>
                 </li>
             </a>
         {% endfor %}

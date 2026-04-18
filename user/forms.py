@@ -39,6 +39,15 @@ class SignUpForm(UserCreationForm):
         })
     )
 
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'id': 'email',
+            'class': '',
+            'placeholder': 'Электронная почта'
+        })
+    )
+
+
     password1 = forms.CharField(
         widget=forms.PasswordInput(attrs={
             'class': '',
@@ -86,6 +95,20 @@ def allowed_permissions_qs():
             content_type__app_label=app
         )
     return Permission.objects.filter(q)
+
+class EditUserForm(UserChangeForm):
+    email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={
+            'id': 'email',
+            'class': 'input validator w-full',
+            'placeholder': 'Электронная почта'
+        })
+    )
+
+    class Meta:
+        model = User
+        fields = ('email',)
 
 class EditForm(forms.ModelForm):
     displayname = forms.CharField(required=False, widget=forms.TextInput(attrs={

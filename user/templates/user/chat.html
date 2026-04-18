@@ -47,7 +47,7 @@
                                 {{ message.content }}
                             </div>
                             <div class="chat-footer opacity-50">
-                                {{ message.timestamp|date:"H:i" }}
+                                {% if message.is_read %} <i class="fa-solid fa-check-double"></i> {% else %} <i class="fa-solid fa-check"></i> {% endif %} {{ message.timestamp|date:"H:i" }} 
                             </div>
                     </li>
                     {% else %}
