@@ -38,7 +38,7 @@
             <label class="tab">
                 <input type="radio" name="profile_tabs"  />
                 <i class="fa-solid fa-user-pen opacity-50 mr-2"></i>
-                Редактировать профиль
+                <span>Редактировать профиль {% if not user.email %}<span class="badge badge-xs btn-circle badge-secondary" ><i class="fa-solid fa-exclamation"></i></span> {% endif %}</span>
             </label>
             <div class="tab-content bg-base-100 border-base-300 p-6" x-data="{email: '{{ email_form.email.value|default_if_none:''|yesno:"" }}'}">
                 <form method="post" enctype="multipart/form-data" class="fieldset">

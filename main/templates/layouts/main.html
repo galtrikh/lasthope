@@ -186,6 +186,17 @@
                 <p>Нашел баг? Пиши сюда >> <a href="{% url 'user' 'nikto' %}" class="link link-hover link-secondary">Разработчик</a></p> 
             </aside>
         </footer>
+        {% if not user.email %}
+        <div class="toast">
+            <div class="alert alert-warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <p>Почта в профиле не заполнена, восстановить аккаунт будет невозможно в случае утери доступа. <a href="{% url 'user' user.username %}" class="underline ml-2">Заполнить</a></p>
+                <button class="btn btn-sm btn-ghost btn-circle" onclick="this.closest('.toast').remove()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+        {% endif %}
         {% comment %} <div class="lg:hidden dock dock-sm">
             <button>    
                <i class="fa-solid fa-comments"></i>
