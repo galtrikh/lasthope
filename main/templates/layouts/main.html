@@ -186,7 +186,7 @@
                 <p>Нашел баг? Пиши сюда >> <a href="{% url 'user' 'nikto' %}" class="link link-hover link-secondary">Разработчик</a></p> 
             </aside>
         </footer>
-        {% if not user.email %}
+        {% if not user.email and user.username %}
         <div class="toast">
             <div class="alert alert-warning">
                 <i class="fa-solid fa-triangle-exclamation"></i>
