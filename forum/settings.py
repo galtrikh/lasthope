@@ -465,11 +465,11 @@ else:
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.yandex.ru'  # SMTP server host
-EMAIL_PORT = 465  # SMTP server port (587 for TLS, 465 for SSL)
-EMAIL_USE_TLS = False  # True for TLS, False for SSL
+EMAIL_PORT = 587  # SMTP server port (587 for TLS, 465 for SSL)
+EMAIL_USE_TLS = True  # True for TLS, False for SSL
 EMAIL_HOST_USER = 'lasthopev34@yandex.ru'  # SMTP server username
 EMAIL_HOST_PASSWORD = env('EMAIL_PASSWORD')  # SMTP server password
-EMAIL_USE_SSL = True  # Set to True if using SSL
+EMAIL_USE_SSL = False  # Set to True if using SSL
 DEFAULT_FROM_EMAIL = 'lasthopev34@yandex.ru'  # Default sender email address
 
 # Password validation
