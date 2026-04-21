@@ -303,12 +303,13 @@ def topics(request, cat_slug):
     for t in topics_list:
         t.flag = get_topic_flags(request.user, t)
 
-    paginator = Paginator(topics_list, 6)
+    paginator = Paginator(topics_list, 1)
     page_obj  = paginator.get_page(request.GET.get('page'))
 
     return render(request, 'forum_app/topics.html', {
         'category':     category,
         'topics':       page_obj,
+        'paginator':    paginator,
         'topics_count': len(topics_list),
         'form':         form,
     })

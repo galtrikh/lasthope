@@ -231,6 +231,54 @@
 
     {% endif %}
 </ul>
+{% if paginator.num_pages > 1 %}
+  <div class="flex items-center justify-between mt-3 flex-wrap gap-2">
+    <p class="text-xs opacity-50">
+      Страница {{ topics.number }} из {{ paginator.num_pages }}
+      &thinsp;·&thinsp;
+      {{ paginator.count }}&nbsp;записей
+    </p>
+    <div class="join">
+      {# Prev #}
+      {% if topics.has_previous %}
+        <a href="?page={{ topics.previous_page_number }}"
+           class="join-item btn btn-sm" title="Предыдущая"
+           aria-label="Предыдущая страница">
+          <i class="fa-solid fa-angle-left text-xs"></i>
+        </a>
+      {% else %}
+        <button class="join-item btn btn-sm btn-disabled" disabled aria-disabled="true">
+          <i class="fa-solid fa-angle-left text-xs"></i>
+        </button>
+      {% endif %}
+      {# Numbered + ellipsis #}
+      {% for num in page_range %}
+        {% if num is None %}
+          <button class="join-item btn btn-sm btn-disabled pointer-events-none"
+                  disabled aria-hidden="true">…</button>
+        {% elif num == topics.number %}
+          <button class="join-item btn btn-sm btn-primary pointer-events-none"
+                  aria-current="page" aria-label="Страница {{ num }}">{{ num }}</button>
+        {% else %}
+          <a href="?page={{ num }}" class="join-item btn btn-sm"
+             aria-label="Страница {{ num }}">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+      {# Next #}
+      {% if topics.has_next %}
+        <a href="?page={{ topics.next_page_number }}"
+           class="join-item btn btn-sm" title="Следующая"
+           aria-label="Следующая страница">
+          <i class="fa-solid fa-angle-right text-xs"></i>
+        </a>
+      {% else %}
+        <button class="join-item btn btn-sm btn-disabled" disabled aria-disabled="true">
+          <i class="fa-solid fa-angle-right text-xs"></i>
+        </button>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
     {% comment %} <div>
         <span class="w-full h-full text-white font-bold text-2xl p-4">{{category.name}}</span>
         <div class="flex flex-col md:flex-row items-center justify-between p-5" x-data="{open:false, btn:'Создать тему'}">
