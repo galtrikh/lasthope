@@ -90,24 +90,24 @@ INSTALLED_APPS = [
     'main.apps.MainConfig'
 ]
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': 'errors.log',
-        },
-    },
-    'loggers': {
-        'main': {
-            'handlers': ['file'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-    },
-}
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'file': {
+#             'level': 'ERROR',
+#             'class': 'logging.FileHandler',
+#             'filename': 'errors.log',
+#         },
+#     },
+#     'loggers': {
+#         'main': {
+#             'handlers': ['file'],
+#             'level': 'ERROR',
+#             'propagate': True,
+#         },
+#     },
+# }
 
 
 # if DEBUG:
@@ -162,7 +162,7 @@ CKEDITOR_5_CONFIGS = {
             '|',
             'outdent', 'indent',
             '|',
-            'blockQuote', 'codeBlock',
+            'blockQuote', 'codeBlock', 'collapsible',
             '|',
             'insertTable',
             'mediaEmbed',
@@ -170,8 +170,6 @@ CKEDITOR_5_CONFIGS = {
             '|',
             'removeFormat',
             'sourceEditing',
-            'comment',
-            'trackChanges',
             'horizontalLine',
             '|',
             'undo', 'redo'
@@ -471,6 +469,22 @@ EMAIL_HOST_USER = 'lasthopev34@yandex.ru'  # SMTP server username
 EMAIL_HOST_PASSWORD = env('EMAIL_PASSWORD')  # SMTP server password
 EMAIL_USE_SSL = False  # Set to True if using SSL
 DEFAULT_FROM_EMAIL = 'lasthopev34@yandex.ru'  # Default sender email address
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

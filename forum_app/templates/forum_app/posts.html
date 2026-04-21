@@ -91,6 +91,51 @@
     align-items: center; justify-content: space-between;
     gap: 0.75rem; margin-top: 1.25rem;
   }
+  .ck-content details.spoiler,
+.post-content details.spoiler {
+    border: 1px solid #485460;
+    border-radius: 8px;
+    margin: 12px 0;
+    background: #2d3436;
+    overflow: hidden;
+}
+
+.ck-content details.spoiler summary,
+.post-content details.spoiler summary {
+    padding: 10px 16px;
+    cursor: pointer;
+    font-weight: 500;
+    background: #1e272e;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+}
+
+.ck-content details.spoiler summary::-webkit-details-marker,
+.post-content details.spoiler summary::-webkit-details-marker {
+    display: none;
+}
+
+.ck-content details.spoiler summary::before,
+.post-content details.spoiler summary::before {
+    content: '▶';
+    font-size: 0.8em;
+    transition: transform 0.2s ease;
+    color: #05c46b;
+}
+
+.ck-content details.spoiler[open] summary::before,
+.post-content details.spoiler[open] summary::before {
+    transform: rotate(90deg);
+}
+
+.ck-content details.spoiler .spoiler-content,
+.post-content details.spoiler .spoiler-content {
+    padding: 16px;
+    border-top: 1px solid #485460;
+}
 </style>
 {% endblock %}
 
