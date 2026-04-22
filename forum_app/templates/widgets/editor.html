@@ -98,8 +98,9 @@
     </div>
 
     {# Форма #}
+    {# onsubmit="return edSubmit(event,this)" #}
     <form id="ed-form" method="post" action="{% url 'topic' category.slug topic.id %}"
-          enctype="multipart/form-data" onsubmit="return edSubmit(event,this)">
+          enctype="multipart/form-data" >
       {% csrf_token %}
       <input type="hidden" name="parent_id"    id="ed-parent-id"   value="">
       <input type="hidden" name="edit_post_id" id="ed-edit-id"     value="">
