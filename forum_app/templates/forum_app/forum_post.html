@@ -174,7 +174,13 @@
       </div>
     </div>
     {% endif %}
-
+    {# Для работы спойлеров #}
+    <div class="collapse collapse-arrow bg-base-100 border border-base-300 hidden">
+    <input type="checkbox" name="post-{{ post.id }}" />
+    <div class="collapse-title font-semibold"></div>
+    <div class="collapse-content text-sm">
+    </div>
+    </div>
     {# ── Тело поста ── #}
     <div class="px-4 pb-3">
       {% if post.visible and not post.deleted %}
