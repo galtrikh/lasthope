@@ -35,6 +35,7 @@
                     {% endif %}
                 </div>
             {% endif %}
+            {% if edit_profile and user.is_authenticated or is_owner %}
             <label class="tab">
                 <input type="radio" name="profile_tabs"  />
                 <i class="fa-solid fa-user-pen opacity-50 mr-2"></i>
@@ -92,6 +93,7 @@
                     </script>
                 </form>
             </div>
+            {% endif %}
             {% if is_owner %}
                 <label class="tab">
                     <input type="radio" name="profile_tabs" />
