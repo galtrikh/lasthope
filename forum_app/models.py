@@ -4,6 +4,7 @@ from django_ckeditor_5.fields import CKEditor5Field
 from django.contrib.auth.models import User
 from .templatetags import forum_filters
 from django.urls import reverse
+from django.utils.text import slugify
 # Create your models here.
 
 class ForumCategory(models.Model):
@@ -23,6 +24,24 @@ class ForumCategory(models.Model):
     @property
     def likes_count(self):
         return self.likes.count()
+
+    def save(self, *args, **kwargs):
+        # Авто-генерация слага при создании, если не задан
+        if not self.slug:
+            base_slug = slugify(self.name)
+            if not base_slug:
+                # Fallback для кириллицы/спецсимволов
+                base_slug = f"category-{self.id or 0}"
+            
+            slug = base_slug
+            counter = 1
+            # Проверка на уникальность
+            while ForumCategory.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        
+        super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         category = ForumCategory.objects.get(id=self.id)

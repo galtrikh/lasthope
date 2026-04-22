@@ -243,7 +243,7 @@ def index(request):
         if form.is_valid():
             cat = form.save(commit=False)
             cat.author = request.user
-            cat.slug   = slugify(cat.name)
+            # cat.slug   = slugify(cat.name)
             cat.save()
             return redirect(cat.get_absolute_url())
     else:
